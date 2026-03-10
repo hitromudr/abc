@@ -11,7 +11,7 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Удаление устаревшего кэша (если остался от v1.1)
 CACHE_FILE="$PROJECT_ROOT/.context_cache.md"
@@ -38,7 +38,7 @@ for root_file in "README.md" "CLAUDE.md"; do
 done
 
 # Автосканирование ядра
-for dir in "00_ИНИЦИАЛИЗАЦИЯ" "01_БАЗА_ЗНАНИЙ" "02_ИНСТРУМЕНТЫ"; do
+for dir in "docs/00_ИНИЦИАЛИЗАЦИЯ" "docs/01_БАЗА_ЗНАНИЙ" "docs/02_ИНСТРУМЕНТЫ"; do
     if [[ -d "$PROJECT_ROOT/$dir" ]]; then
         while IFS= read -r -d '' file; do
             rel_path="${file#"$PROJECT_ROOT/"}"
@@ -51,11 +51,11 @@ done
 # 03_РЕШЕНИЯ — растущая директория
 PERIPHERAL_PATHS=()
 
-if [[ -d "$PROJECT_ROOT/03_РЕШЕНИЯ" ]]; then
+if [[ -d "$PROJECT_ROOT/docs/03_РЕШЕНИЯ" ]]; then
     while IFS= read -r -d '' file; do
         rel_path="${file#"$PROJECT_ROOT/"}"
         PERIPHERAL_PATHS+=("abc/$rel_path")
-    done < <(find "$PROJECT_ROOT/03_РЕШЕНИЯ" -name "*.md" -type f -print0 | sort -z)
+    done < <(find "$PROJECT_ROOT/docs/03_РЕШЕНИЯ" -name "*.md" -type f -print0 | sort -z)
 fi
 
 # --- ВАЛИДАЦИЯ ---
