@@ -36,14 +36,14 @@ abracadabra — это мета-фреймворк. Чтобы решать пр
 git submodule add https://github.com/hitromudr/abc.git .abracadabra
 ```
 
+После выполнения в корне вашего проекта появится:
+
 ```
 ваш-проект/
-├── .abracadabra/    ← репозиторий abracadabra (сабмодуль)
+├── .abracadabra/        ← сабмодуль (этот репозиторий)
 │   ├── abra/
 │   ├── cadabra/
 │   └── CLAUDE.md
-├── .rules           ← симлинк (создаётся на шаге 2)
-├── .cursorrules     ← симлинк (создаётся на шаге 2)
 └── ваш код...
 ```
 
@@ -69,7 +69,7 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 | [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Прикрепите файл → напишите задачу |
 | [Qwen](https://chat.qwen.ai) | Qwen 3 | Прикрепите файл → напишите задачу |
 
-Хотите создать готового бота (Custom GPT, Coze, Telegram)? См. [DEPLOY.md](DEPLOY.md).
+Хотите создать готового бота (Coze, Telegram, HuggingChat)? См. [DEPLOY.md](DEPLOY.md).
 
 *Это только **abra** (анализ и протокол). Для полного цикла (анализ + исполнение) нужна AI-IDE с доступом к файловой системе.*
 

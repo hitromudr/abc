@@ -36,14 +36,14 @@ abracadabra is a meta-framework. To solve product tasks, you need to connect it 
 git submodule add https://github.com/hitromudr/abc.git .abracadabra
 ```
 
+After running, your project root will contain:
+
 ```
 your-project/
-├── .abracadabra/    ← abracadabra repo (submodule)
+├── .abracadabra/        ← submodule (this repository)
 │   ├── abra/
 │   ├── cadabra/
 │   └── CLAUDE.md
-├── .rules           ← symlink (created in step 2)
-├── .cursorrules     ← symlink (created in step 2)
 └── your code...
 ```
 
@@ -69,7 +69,7 @@ Download [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТР
 | [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Attach file → write your task |
 | [Qwen](https://chat.qwen.ai) | Qwen 3 | Attach file → write your task |
 
-Want to create a ready-made bot (Custom GPT, Coze, Telegram)? See [DEPLOY.md](DEPLOY.md).
+Want to create a ready-made bot (Coze, Telegram, HuggingChat)? See [DEPLOY.md](DEPLOY.md).
 
 *Note: This runs only **abra** (analysis & protocol). For the full cycle (analysis + execution), an AI-IDE with file system access is required.*
 
