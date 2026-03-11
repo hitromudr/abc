@@ -50,10 +50,13 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 
 | Площадка | Модель | Как запустить |
 |---|---|---|
-| [ChatGPT](https://chatgpt.com) | GPT-4o (бесплатно) | Прикрепите файл → напишите задачу |
-| [Claude.ai](https://claude.ai) | Sonnet (бесплатно) | Прикрепите файл → напишите задачу |
-| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (бесплатно, 1M контекст) | System Instructions → вставьте текст файла → напишите задачу |
-| [Poe.com](https://poe.com/AbraCadabraDemoBot) | Sonnet (платные поинты) | Готовый бот, просто напишите задачу |
+| [ChatGPT](https://chatgpt.com) | GPT-4o | Прикрепите файл → напишите задачу |
+| [Claude.ai](https://claude.ai) | Sonnet | Прикрепите файл → напишите задачу |
+| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (1M контекст) | System Instructions → вставьте текст файла → напишите задачу |
+| [Grok](https://grok.com) | Grok 3 | Прикрепите файл → напишите задачу |
+| [Kimi](https://kimi.moonshot.cn) | Kimi (128K контекст) | Прикрепите файл → напишите задачу |
+| [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Прикрепите файл → напишите задачу |
+| [Qwen](https://chat.qwen.ai) | Qwen 3 | Прикрепите файл → напишите задачу |
 
 *Это только **abra** (анализ и протокол). Для полного цикла (анализ + исполнение) нужна AI-IDE с доступом к файловой системе.*
 

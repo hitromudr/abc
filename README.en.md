@@ -50,10 +50,13 @@ Download [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТР
 
 | Platform | Model | How to run |
 |---|---|---|
-| [ChatGPT](https://chatgpt.com) | GPT-4o (free) | Attach file → write your task |
-| [Claude.ai](https://claude.ai) | Sonnet (free) | Attach file → write your task |
-| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (free, 1M context) | System Instructions → paste file content → write your task |
-| [Poe.com](https://poe.com/AbraCadabraDemoBot) | Sonnet (paid points) | Ready-made bot, just write your task |
+| [ChatGPT](https://chatgpt.com) | GPT-4o | Attach file → write your task |
+| [Claude.ai](https://claude.ai) | Sonnet | Attach file → write your task |
+| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (1M context) | System Instructions → paste file content → write your task |
+| [Grok](https://grok.com) | Grok 3 | Attach file → write your task |
+| [Kimi](https://kimi.moonshot.cn) | Kimi (128K context) | Attach file → write your task |
+| [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Attach file → write your task |
+| [Qwen](https://chat.qwen.ai) | Qwen 3 | Attach file → write your task |
 
 *Note: This runs only **abra** (analysis & protocol). For the full cycle (analysis + execution), an AI-IDE with file system access is required.*
 
