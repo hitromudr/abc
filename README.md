@@ -58,6 +58,8 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 | [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Прикрепите файл → напишите задачу |
 | [Qwen](https://chat.qwen.ai) | Qwen 3 | Прикрепите файл → напишите задачу |
 
+Хотите создать готового бота (Custom GPT, Coze, Telegram)? См. [DEPLOY.md](DEPLOY.md).
+
 *Это только **abra** (анализ и протокол). Для полного цикла (анализ + исполнение) нужна AI-IDE с доступом к файловой системе.*
 
 **Шаг 1 — Инициализация ядра.** В новом чате напишите:

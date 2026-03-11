@@ -58,6 +58,8 @@ Download [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТР
 | [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Attach file → write your task |
 | [Qwen](https://chat.qwen.ai) | Qwen 3 | Attach file → write your task |
 
+Want to create a ready-made bot (Custom GPT, Coze, Telegram)? See [DEPLOY.md](DEPLOY.md).
+
 *Note: This runs only **abra** (analysis & protocol). For the full cycle (analysis + execution), an AI-IDE with file system access is required.*
 
 **Step 1 — Core Initialization.** In a new chat, type:
