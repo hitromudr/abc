@@ -36,7 +36,7 @@ abracadabra — двухфазный коммит (Two-Phase Commit), вопло
 Клонируйте репо:
 
 ```bash
-git clone https://github.com/hitromudr/abc.git abracadabra && cd abracadabra
+git clone https://github.com/hitromudr/abc.git && cd abc
 ```
 
 | IDE | Настройка | Запуск |
@@ -101,7 +101,7 @@ abracadabra — экзоскелет, а не скафандр. Он для за
 ## Структура
 
 ```
-abracadabra/
+abc/
 ├── abra/                       ← Архитектор
 │   ├── core_rules.md           ← системный промпт
 │   ├── docs/
