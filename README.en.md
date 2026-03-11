@@ -30,10 +30,21 @@ Operator → abra init → [Core loaded] → abra [task] → Conceptual Protocol
 
 abracadabra is a meta-framework. To solve product tasks, you need to connect it to your working repository.
 
-1. Add `abracadabra` as a submodule (or just copy the folder) to the root of your project:
+1. Add `abracadabra` as a submodule to the root of your project. This creates a hidden `.abracadabra/` folder — all paths below are relative to it:
 
 ```bash
 git submodule add https://github.com/hitromudr/abc.git .abracadabra
+```
+
+```
+your-project/
+├── .abracadabra/    ← abracadabra repo (submodule)
+│   ├── abra/
+│   ├── cadabra/
+│   └── CLAUDE.md
+├── .rules           ← symlink (created in step 2)
+├── .cursorrules     ← symlink (created in step 2)
+└── your code...
 ```
 
 2. Connect the system rules to your AI editor:
