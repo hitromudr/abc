@@ -1,0 +1,57 @@
+name: 🏆 Успешный Ритуал (Use Case)
+description: Поделитесь историей, как abracadabra решила вашу сложную задачу
+title: "[USE CASE]: <краткая суть задачи>"
+labels: ["use-case", "empirical"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Спасибо за ваш вклад в эмпирическое заземление!
+        Философия без физических доказательств — это галлюцинация. Расскажите, как мета-конвейер помог вам в реальной работе. Ваш кейс может быть добавлен в `README.md` в секцию "До / После".
+
+  - type: input
+    id: problem
+    attributes:
+      label: 1. Исходная задача (Хаос)
+      description: С какой задачей вы пришли к агенту? В чём была сложность (Complicated/Complex)?
+      placeholder: "Нужно было распутать монолитный сервис авторизации, который никто не трогал 3 года..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: abra_action
+    attributes:
+      label: 2. Что сделал abra (Архитектор)
+      description: Какие фильтры сработали? Как Октагон атаковал вашу идею? Можете приложить кусок сгенерированного Концептуального Протокола.
+      placeholder: "abra отклонил задачу на этапе Фазы 0 (потребовал трейсы). Затем нашел узкое горлышко в..."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: cadabra_action
+    attributes:
+      label: 3. Что сделал cadabra (Исполнитель)
+      description: Как прошло исполнение контракта `EXECUTION_STATE.md`? Были ли заблокированные шаги (ERROR_LOG) и как они разрешились?
+      placeholder: "cadabra упал на 3 шаге (отсутствовал нужный пакет), я вернул ошибку abra, он обновил контракт, и со 2 раза всё собралось."
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: result
+    attributes:
+      label: 4. Метрика истины (Телос)
+      description: Что конкретно изменилось в физическом мире (Product) и в ваших процессах (Process)?
+      placeholder: "Время сборки упало на 40%. Я понял, что мы зря пытались использовать gRPC там, где нужен был обычный брокер событий."
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: 5. Окружение
+      description: Какую модель и IDE вы использовали? (например, Gemini 3.5 Pro + Zed, или Claude 3.5 Sonnet + Cursor)
+      placeholder: "Gemini 3.5 Pro + Zed"
+    validations:
+      required: true

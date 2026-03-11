@@ -1,0 +1,50 @@
+name: 🐛 Утечка Галлюцинаций (Hallucination Leak / Bug)
+description: Конвейер дал сбой и Агент сгенерировал мёртвый код, сломал Scope или проигнорировал Октагон.
+title: "[BUG] "
+labels: ["bug", "hallucination", "process-helix"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Презумпция Хаоса:** Если Агент галлюцинирует, виноват не Агент. Виноваты наши архитектурные печати, которые не смогли его удержать.
+        Помогите нам закрыть брешь в `core_rules.md` или `EXECUTION_STATE.md`.
+
+  - type: textarea
+    id: empirical-evidence
+    attributes:
+      label: 1. Эмпирическое Доказательство (Симптом)
+      description: Что именно сгенерировал/сделал Агент? Приложите кусок неверного Концептуального Протокола, сломанный код или лог ошибки из терминала.
+      placeholder: "abra вместо анализа сразу выдал код... / cadabra вышел за пределы разрешенного Scope и удалил нужный файл..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 2. Среда Исполнения (Топология)
+      description: Какая IDE и модель использовались в момент пробоя?
+      value: |
+        - IDE: [например: Zed / Cursor / Claude Code CLI / ChatGPT Web]
+        - Модель: [например: Claude 3.5 Sonnet / GPT-4o / Gemini 1.5 Pro]
+        - Агент: [abra / cadabra / оба]
+    validations:
+      required: true
+
+  - type: textarea
+    id: broken-invariant
+    attributes:
+      label: 3. Какой Инвариант / Фильтр был проигнорирован?
+      description: (Опционально) Если понимаете структуру проекта, укажите, где именно сломался конвейер. Например, "Агент пропустил Фазу 0 и не потребовал метрик" или "Ось 5 (Иммунитет) в Октагоне не была учтена".
+      placeholder: "Нарушено правило [MUST_NOT_DO] номер..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: double-helix-check
+    attributes:
+      label: 4. Готовность к Двойной Спирали (Process Helix)
+      description: Согласно принципу Двойной Спирали, баг должен мутировать систему. Готовы ли вы предложить PR с исправлением правил?
+      options:
+        - label: Да, я предложу PR с патчем для `core_rules.md` или Базы Знаний.
+        - label: Нет, просто почините это.
