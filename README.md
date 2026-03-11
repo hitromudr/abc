@@ -1,5 +1,6 @@
 # abracadabra
 
+[![Version](https://img.shields.io/badge/version-2.1.0-green.svg)](CHANGELOG.md)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Когнитивный экзоскелет для LLM — жесткая архитектура вместо промпт-инженерии.**
