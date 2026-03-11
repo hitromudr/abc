@@ -17,6 +17,23 @@ REPO_ROOT="$(cd "$ABRA_ROOT/.." && pwd)"
 # Имя репо для вывода путей агенту
 REPO_NAME="$(basename "$REPO_ROOT")"
 
+# --- ИСКЛЮЧЕНИЯ ИЗ ЯДРА (файлы остаются на диске, но не загружаются при init) ---
+# README — публичный фасад для GitHub, агенту не нужен
+# Манифест — покрыт core_rules.md
+# Автономный пайплайн — self-contained версия для web-чатов, дубль Алгоритма
+EXCLUDE_FROM_CORE=(
+    "docs/00_ИНИЦИАЛИЗАЦИЯ/01_МАНИФЕСТ_ПРОЕКТА.md"
+    "docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md"
+)
+
+is_excluded() {
+    local rel="$1"
+    for excl in "${EXCLUDE_FROM_CORE[@]}"; do
+        [[ "$rel" == "$excl" ]] && return 0
+    done
+    return 1
+}
+
 # --- АВТОДЕТЕКЦИЯ СРЕДЫ ---
 # CLAUDECODE=1 — выставляется Claude Code CLI
 # TERM_PROGRAM=Zed — выставляется встроенным терминалом Zed
@@ -48,19 +65,14 @@ if [[ -f "$ABRA_ROOT/core_rules.md" ]]; then
     CORE_PATHS+=("$REPO_NAME/abra/core_rules.md")
 fi
 
-# Корневые фасады
-for root_file in "README.md"; do
-    if [[ -f "$REPO_ROOT/$root_file" ]]; then
-        CORE_PATHS+=("$REPO_NAME/$root_file")
-    fi
-done
-
-# Автосканирование ядра abra
+# Автосканирование ядра abra (с учётом исключений)
 for dir in "docs/00_ИНИЦИАЛИЗАЦИЯ" "docs/01_БАЗА_ЗНАНИЙ" "docs/02_ИНСТРУМЕНТЫ"; do
     if [[ -d "$ABRA_ROOT/$dir" ]]; then
         while IFS= read -r -d '' file; do
             rel_path="${file#"$ABRA_ROOT/"}"
-            CORE_PATHS+=("$REPO_NAME/abra/$rel_path")
+            if ! is_excluded "$rel_path"; then
+                CORE_PATHS+=("$REPO_NAME/abra/$rel_path")
+            fi
         done < <(find "$ABRA_ROOT/$dir" -name "*.md" -type f -print0 | sort -z)
     fi
 done
