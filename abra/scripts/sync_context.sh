@@ -74,6 +74,23 @@ if [[ -f "$REPO_ROOT/cadabra/core_rules.md" ]]; then
     PERIPHERAL_PATHS+=("$REPO_NAME/cadabra/core_rules.md")
 fi
 
+# --- ПРОВЕРКА СИМЛИНКОВ ---
+BROKEN_LINKS=0
+for link in ".rules" ".cursorrules"; do
+    link_path="$REPO_ROOT/$link"
+    if [[ -L "$link_path" ]]; then
+        if ! [[ -f "$link_path" ]]; then
+            echo "[ОШИБКА] Битый симлинк: $link → $(readlink "$link_path")"
+            BROKEN_LINKS=$((BROKEN_LINKS + 1))
+        fi
+    elif [[ ! -e "$link_path" ]]; then
+        echo "[ПРЕДУПРЕЖДЕНИЕ] Отсутствует: $link (ожидается симлинк → abra/core_rules.md)"
+    fi
+done
+if [[ $BROKEN_LINKS -gt 0 ]]; then
+    echo "[КРИТИЧНО] $BROKEN_LINKS битых симлинков. Исправьте перед продолжением."
+fi
+
 # --- ВАЛИДАЦИЯ ---
 TOTAL=$(( ${#CORE_PATHS[@]} + ${#PERIPHERAL_PATHS[@]} ))
 
