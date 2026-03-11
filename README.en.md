@@ -51,6 +51,8 @@ Don't want to configure an IDE yet? Try the core logic (Architect mode) directly
 
 *Alternatively, you can download the [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md) file and attach it to any chat in ChatGPT / Claude / Gemini to run the analysis cycle manually.*
 
+*Note: The sandbox runs only **abra** (analysis & protocol). For the full cycle (analysis + execution), an AI-IDE with file system access is required.*
+
 **Step 1 — Core Initialization.** In a new chat, type:
 
 ```
