@@ -1,5 +1,7 @@
 # abracadabra
 
+🇷🇺 **Русский** | [🇬🇧 English](README.en.md)
+
 [![Version](https://img.shields.io/badge/version-2.2.0-green.svg)](CHANGELOG.md)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
