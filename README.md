@@ -63,7 +63,7 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 |---|---|---|
 | [ChatGPT](https://chatgpt.com) | GPT-4o | Прикрепите файл → напишите задачу |
 | [Claude.ai](https://claude.ai) | Sonnet | Прикрепите файл → напишите задачу |
-| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (1M контекст) | System Instructions → вставьте текст файла → напишите задачу |
+| [Google AI Studio](https://aistudio.google.com) | Gemini 3.1 Pro | System Instructions → вставьте текст файла → напишите задачу. [Готовый промпт](https://aistudio.google.com/prompts/15dRzT0yfD1XkMtRmeHnfptfBg_ez8mp0) |
 | [Grok](https://grok.com) | Grok 3 | Прикрепите файл → напишите задачу |
 | [Kimi](https://kimi.moonshot.cn) | Kimi (128K контекст) | Прикрепите файл → напишите задачу |
 | [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Прикрепите файл → напишите задачу |
