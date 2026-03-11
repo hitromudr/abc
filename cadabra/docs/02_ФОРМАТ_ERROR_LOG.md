@@ -9,7 +9,8 @@
 ```markdown
 ## 4. ЖУРНАЛ ОШИБОК (ERROR_LOG / Гомеостаз)
 - **Проваленный шаг:** [номер шага из DAG]
-- **Тип блокировки:** [ verification_failed | scope_violation | contract_defect | fork_detected | kill_box_violation ]
+- **Тип блокировки:** [ verification_failed | scope_violation | contract_defect | fork_detected | kill_box_violation | retry_exhausted ]
+- **Попытки:** [количество использованных попыток из Retry Budget, если применимо]
 - **Симптом:** [Что именно пошло не так — 1-2 предложения]
 - **Вывод среды (stdout/stderr):**
 ```text
@@ -30,6 +31,7 @@
 | `contract_defect` | Контракт содержит ошибку: нет команды проверки, ссылка на несуществующий файл, противоречие между шагами | Шаг 2: "Изменить файл X", но файл X не существует |
 | `fork_detected` | Два или более способов выполнить шаг, cadabra не имеет права выбирать | "Добавить обработку ошибок" — try/catch или Result type? |
 | `kill_box_violation` | Выполнение шага неизбежно нарушит MUST_NOT_DO | Шаг требует изменить схему БД, Kill Box запрещает |
+| `retry_exhausted` | 3 попытки починки внутри Scope исчерпаны, тест всё ещё красный | После 3 правок `src/cart.ts` тест cart.test.ts падает с тем же assertion error |
 
 ---
 
