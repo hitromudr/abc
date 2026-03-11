@@ -5,6 +5,13 @@
 
 ---
 
+## [2.4.1] — 2026-03-11
+
+### Changed
+- DEPLOY.md: Google AI Studio — рекомендуемая платформа (#1), Coze понижен до "условно бесплатно", HuggingChat переписан (Assistants удалены)
+- README: ссылка на готовый промпт Google AI Studio, модель обновлена до Gemini 3.1 Pro
+- Рейтинг моделей: Gemini 3.1 Pro заменяет 2.5 Pro на позиции #2
+
 ## [2.4.0] — 2026-03-11
 
 ### Added
