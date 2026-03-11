@@ -47,13 +47,18 @@ your-project/
 └── your code...
 ```
 
-2. Connect the system rules to your AI editor:
+2. Connect the system rules to your AI editor (these commands append a reference — they won't overwrite your existing project rules):
 
-| IDE | Setup (run in the root of your project) |
-|---|---|
-| **Zed** | `ln -s .abracadabra/abra/core_rules.md .rules` |
-| **Cursor** | `ln -s .abracadabra/abra/core_rules.md .cursorrules` |
-| **Claude Code** | `cp .abracadabra/CLAUDE.md .` |
+```bash
+# Zed
+echo 'Read the file .abracadabra/abra/core_rules.md and follow its instructions.' >> .rules
+
+# Cursor
+echo 'Read the file .abracadabra/abra/core_rules.md and follow its instructions.' >> .cursorrules
+
+# Claude Code
+echo 'Read the file .abracadabra/abra/core_rules.md and follow its instructions.' >> CLAUDE.md
+```
 
 ### Analysis only (No installation required)
 

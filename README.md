@@ -47,13 +47,18 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 └── ваш код...
 ```
 
-2. Подключите системные правила к вашему AI-редактору:
+2. Подключите системные правила к вашему AI-редактору (команды не затирают существующие правила проекта — дописывают ссылку в конец):
 
-| IDE | Настройка (выполнить в корне вашего проекта) |
-|---|---|
-| **Zed** | `ln -s .abracadabra/abra/core_rules.md .rules` |
-| **Cursor** | `ln -s .abracadabra/abra/core_rules.md .cursorrules` |
-| **Claude Code** | `cp .abracadabra/CLAUDE.md .` |
+```bash
+# Zed
+echo 'Прочитай файл .abracadabra/abra/core_rules.md и следуй его инструкциям.' >> .rules
+
+# Cursor
+echo 'Прочитай файл .abracadabra/abra/core_rules.md и следуй его инструкциям.' >> .cursorrules
+
+# Claude Code
+echo 'Прочитай файл .abracadabra/abra/core_rules.md и следуй его инструкциям.' >> CLAUDE.md
+```
 
 ### Только анализ (любой web-чат)
 
