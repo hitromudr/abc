@@ -2,7 +2,7 @@
 
 🇬🇧 **English** | [🇷🇺 Русский](README.md)
 
-[![Version](https://img.shields.io/badge/version-2.3.0-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.4.0-green.svg)](CHANGELOG.md)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Cognitive exoskeleton for LLMs — strict architecture instead of prompt engineering.**
