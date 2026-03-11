@@ -37,10 +37,11 @@ is_excluded() {
 # --- АВТОДЕТЕКЦИЯ СРЕДЫ ---
 # CLAUDECODE=1 — выставляется Claude Code CLI
 # TERM_PROGRAM=Zed — выставляется встроенным терминалом Zed
+# Fallback: проверка процесса zed (для Zed Agent, где TERM_PROGRAM не выставлен)
 if [[ "${CLAUDECODE:-}" == "1" ]]; then
     AGENT_ENV="claude"
     BYTES_PER_TOKEN=4    # Кириллица дороже в Claude BPE
-elif [[ "${TERM_PROGRAM:-}" == "Zed" ]]; then
+elif [[ "${TERM_PROGRAM:-}" == "Zed" ]] || pgrep -x zed >/dev/null 2>&1; then
     AGENT_ENV="zed"
     BYTES_PER_TOKEN=6    # Gemini BPE эффективнее на UTF-8
 else
