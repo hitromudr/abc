@@ -36,7 +36,7 @@ abracadabra — двухфазный коммит (Two-Phase Commit), вопло
 Клонируйте репо:
 
 ```bash
-git clone <url> && cd abracadabra
+git clone https://github.com/hitromudr/abc.git abracadabra && cd abracadabra
 ```
 
 | IDE | Настройка | Запуск |
@@ -48,7 +48,7 @@ git clone <url> && cd abracadabra
 После получения и утверждения протокола:
 
 ```
-cadabra abra/docs/03_РЕШЕНИЯ/.../EXECUTION_STATE.md
+cadabra ./abra/docs/03_РЕШЕНИЯ/.../EXECUTION_STATE.md
 ```
 
 cadabra прочитает контракт и начнёт исполнение DAG.
