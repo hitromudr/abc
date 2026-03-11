@@ -44,13 +44,12 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 | **Cursor** | `ln -s .abracadabra/abra/core_rules.md .cursorrules` |
 | **Claude Code** | `cp .abracadabra/CLAUDE.md .` |
 
-### Analysis only (any web-chat)
+### Analysis only (No installation required)
 
-1. Download [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md)
-2. Attach it to a chat in ChatGPT / Claude / Gemini
-3. Write your task — the model will perform a full analysis cycle
+Don't want to configure an IDE yet? Try the core logic (Architect mode) directly in your browser:
+👉 **[🔮 Play in the Sandbox (Poe.com)](https://poe.com/AbraCadabraDemoBot)**
 
-This runs only **abra** (analysis and protocol). For the full cycle (analysis + execution), an AI-IDE with file system access is required.
+*Alternatively, you can download the [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md) file and attach it to any chat in ChatGPT / Claude / Gemini to run the analysis cycle manually.*
 
 **Step 1 — Core Initialization.** In a new chat, type:
 
