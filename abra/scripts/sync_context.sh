@@ -2,61 +2,76 @@
 
 # ==============================================================================
 # sync_context.sh
-# Точка входа для агента (Process Helix v4.0).
-# v2: Жёстко закодированный массив файлов — не масштабировался при росте 03_РЕШЕНИЯ.
-# v3: Автоматическое сканирование дерева. Разделение на ЯДРО и ПЕРИФЕРИЮ.
-# v3.1: Добавлено чтение корневых фасадов (README.md, CLAUDE.md) для избежания слепых зон.
-# v4.0: Внедрена система самодиагностики лимитов среды (Апоптоз) и защита от тихой амнезии.
+# Точка входа для агента (Process Helix v5.0).
+# v4.0: Самодиагностика лимитов среды.
+# v5.0: Адаптация под моно-репо abracadabra (abra/ + cadabra/).
 # ==============================================================================
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+ABRA_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$ABRA_ROOT/.." && pwd)"
 
-# Удаление устаревшего кэша (если остался от v1.1)
-CACHE_FILE="$PROJECT_ROOT/.context_cache.md"
-[[ -f "$CACHE_FILE" ]] && rm -f "$CACHE_FILE"
+# Имя репо для вывода путей агенту
+REPO_NAME="$(basename "$REPO_ROOT")"
+
+# Удаление устаревшего кэша (если остался от старых версий)
+for cache in "$REPO_ROOT/.context_cache.md" "$ABRA_ROOT/.context_cache.md"; do
+    [[ -f "$cache" ]] && rm -f "$cache"
+done
 
 echo "STATUS: ВАЛИДАЦИЯ КОНТЕКСТА (СИСТЕМА 2)"
-echo "PROCESS HELIX: Автоматическое сканирование дерева (v4.0). Ручной массив упразднён."
+echo "PROCESS HELIX: Автоматическое сканирование дерева (v5.0). Моно-репо abracadabra."
 echo "--------------------------------------------------------------------------------"
 
 # --- ЯДРО (обязательная загрузка) ---
-# .rules + Корневые фасады + 00_ИНИЦИАЛИЗАЦИЯ + 01_БАЗА_ЗНАНИЙ + 02_ИНСТРУМЕНТЫ
 CORE_PATHS=()
 
-# .rules — точка абсолютной власти
-if [[ -f "$PROJECT_ROOT/.rules" ]]; then
-    CORE_PATHS+=("abc/.rules")
+# .rules (симлинк в корне репо -> abra/core_rules.md)
+if [[ -f "$ABRA_ROOT/core_rules.md" ]]; then
+    CORE_PATHS+=("$REPO_NAME/abra/core_rules.md")
 fi
 
-# Корневые фасады (устранение слепого пятна)
+# Корневые фасады
 for root_file in "README.md" "CLAUDE.md"; do
-    if [[ -f "$PROJECT_ROOT/$root_file" ]]; then
-        CORE_PATHS+=("abc/$root_file")
+    if [[ -f "$REPO_ROOT/$root_file" ]]; then
+        CORE_PATHS+=("$REPO_NAME/$root_file")
     fi
 done
 
-# Автосканирование ядра
+# Автосканирование ядра abra
 for dir in "docs/00_ИНИЦИАЛИЗАЦИЯ" "docs/01_БАЗА_ЗНАНИЙ" "docs/02_ИНСТРУМЕНТЫ"; do
-    if [[ -d "$PROJECT_ROOT/$dir" ]]; then
+    if [[ -d "$ABRA_ROOT/$dir" ]]; then
         while IFS= read -r -d '' file; do
-            rel_path="${file#"$PROJECT_ROOT/"}"
-            CORE_PATHS+=("abc/$rel_path")
-        done < <(find "$PROJECT_ROOT/$dir" -name "*.md" -type f -print0 | sort -z)
+            rel_path="${file#"$ABRA_ROOT/"}"
+            CORE_PATHS+=("$REPO_NAME/abra/$rel_path")
+        done < <(find "$ABRA_ROOT/$dir" -name "*.md" -type f -print0 | sort -z)
     fi
 done
 
 # --- ПЕРИФЕРИЯ (загружается при наличии контекста) ---
-# 03_РЕШЕНИЯ — растущая директория
 PERIPHERAL_PATHS=()
 
-if [[ -d "$PROJECT_ROOT/docs/03_РЕШЕНИЯ" ]]; then
+# abra/docs/03_РЕШЕНИЯ
+if [[ -d "$ABRA_ROOT/docs/03_РЕШЕНИЯ" ]]; then
     while IFS= read -r -d '' file; do
-        rel_path="${file#"$PROJECT_ROOT/"}"
-        PERIPHERAL_PATHS+=("abc/$rel_path")
-    done < <(find "$PROJECT_ROOT/docs/03_РЕШЕНИЯ" -name "*.md" -type f -print0 | sort -z)
+        rel_path="${file#"$ABRA_ROOT/"}"
+        PERIPHERAL_PATHS+=("$REPO_NAME/abra/$rel_path")
+    done < <(find "$ABRA_ROOT/docs/03_РЕШЕНИЯ" -name "*.md" -type f -print0 | sort -z)
+fi
+
+# cadabra (если есть документация)
+if [[ -d "$REPO_ROOT/cadabra/docs" ]]; then
+    while IFS= read -r -d '' file; do
+        rel_path="${file#"$REPO_ROOT/"}"
+        PERIPHERAL_PATHS+=("$REPO_NAME/$rel_path")
+    done < <(find "$REPO_ROOT/cadabra/docs" -name "*.md" -type f -print0 | sort -z)
+fi
+
+# cadabra/.rules (если есть)
+if [[ -f "$REPO_ROOT/cadabra/core_rules.md" ]]; then
+    PERIPHERAL_PATHS+=("$REPO_NAME/cadabra/core_rules.md")
 fi
 
 # --- ВАЛИДАЦИЯ ---
@@ -70,7 +85,9 @@ TOTAL_BYTES=0
 OVERSIZED_FILES=0
 
 for path in "${CORE_PATHS[@]}" "${PERIPHERAL_PATHS[@]}"; do
-    file_path="$PROJECT_ROOT/${path#abc/}"
+    # Убираем имя репо из пути, чтобы получить путь от корня репо
+    repo_rel="${path#"$REPO_NAME/"}"
+    file_path="$REPO_ROOT/$repo_rel"
     if [[ -f "$file_path" ]]; then
         size=$(wc -c < "$file_path" | tr -d ' ')
         TOTAL_BYTES=$((TOTAL_BYTES + size))
