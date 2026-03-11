@@ -2,9 +2,10 @@
 
 # ==============================================================================
 # sync_context.sh
-# Точка входа для агента (Process Helix v5.0).
+# Точка входа для агента (Process Helix v5.1).
 # v4.0: Самодиагностика лимитов среды.
 # v5.0: Адаптация под моно-репо abracadabra (abra/ + cadabra/).
+# v5.1: Автодетекция среды (Claude Code / Zed+Gemini). Адаптивный коэффициент токенов.
 # ==============================================================================
 
 set -uo pipefail
@@ -16,13 +17,27 @@ REPO_ROOT="$(cd "$ABRA_ROOT/.." && pwd)"
 # Имя репо для вывода путей агенту
 REPO_NAME="$(basename "$REPO_ROOT")"
 
+# --- АВТОДЕТЕКЦИЯ СРЕДЫ ---
+# CLAUDECODE=1 — выставляется Claude Code CLI
+# TERM_PROGRAM=Zed — выставляется встроенным терминалом Zed
+if [[ "${CLAUDECODE:-}" == "1" ]]; then
+    AGENT_ENV="claude"
+    BYTES_PER_TOKEN=4    # Кириллица дороже в Claude BPE
+elif [[ "${TERM_PROGRAM:-}" == "Zed" ]]; then
+    AGENT_ENV="zed"
+    BYTES_PER_TOKEN=6    # Gemini BPE эффективнее на UTF-8
+else
+    AGENT_ENV="unknown"
+    BYTES_PER_TOKEN=4    # Консервативная оценка по умолчанию
+fi
+
 # Удаление устаревшего кэша (если остался от старых версий)
 for cache in "$REPO_ROOT/.context_cache.md" "$ABRA_ROOT/.context_cache.md"; do
     [[ -f "$cache" ]] && rm -f "$cache"
 done
 
 echo "STATUS: ВАЛИДАЦИЯ КОНТЕКСТА (СИСТЕМА 2)"
-echo "PROCESS HELIX: Автоматическое сканирование дерева (v5.0). Моно-репо abracadabra."
+echo "PROCESS HELIX: Автоматическое сканирование дерева (v5.1). Среда: $AGENT_ENV (${BYTES_PER_TOKEN} байт/токен)."
 echo "--------------------------------------------------------------------------------"
 
 # --- ЯДРО (обязательная загрузка) ---
@@ -34,7 +49,7 @@ if [[ -f "$ABRA_ROOT/core_rules.md" ]]; then
 fi
 
 # Корневые фасады
-for root_file in "README.md" "CLAUDE.md"; do
+for root_file in "README.md"; do
     if [[ -f "$REPO_ROOT/$root_file" ]]; then
         CORE_PATHS+=("$REPO_NAME/$root_file")
     fi
@@ -59,19 +74,6 @@ if [[ -d "$ABRA_ROOT/docs/03_РЕШЕНИЯ" ]]; then
         rel_path="${file#"$ABRA_ROOT/"}"
         PERIPHERAL_PATHS+=("$REPO_NAME/abra/$rel_path")
     done < <(find "$ABRA_ROOT/docs/03_РЕШЕНИЯ" -name "*.md" -type f -print0 | sort -z)
-fi
-
-# cadabra (если есть документация)
-if [[ -d "$REPO_ROOT/cadabra/docs" ]]; then
-    while IFS= read -r -d '' file; do
-        rel_path="${file#"$REPO_ROOT/"}"
-        PERIPHERAL_PATHS+=("$REPO_NAME/$rel_path")
-    done < <(find "$REPO_ROOT/cadabra/docs" -name "*.md" -type f -print0 | sort -z)
-fi
-
-# cadabra/.rules (если есть)
-if [[ -f "$REPO_ROOT/cadabra/core_rules.md" ]]; then
-    PERIPHERAL_PATHS+=("$REPO_NAME/cadabra/core_rules.md")
 fi
 
 # --- ПРОВЕРКА СИМЛИНКОВ ---
@@ -116,10 +118,12 @@ for path in "${CORE_PATHS[@]}" "${PERIPHERAL_PATHS[@]}"; do
 done
 
 TOTAL_KB=$((TOTAL_BYTES / 1024))
+TOTAL_TOKENS=$((TOTAL_BYTES / BYTES_PER_TOKEN))
+TOTAL_KTOKENS=$((TOTAL_TOKENS / 1000))
 if [[ $TOTAL_KB -gt 150 ]]; then
-    echo "[УГРОЗА МЕТАБОЛИЗМУ] Общий вес контекста: ${TOTAL_KB}KB. Требуется дедупликация (Апоптоз)!"
+    echo "[УГРОЗА МЕТАБОЛИЗМУ] Общий вес контекста: ${TOTAL_KB}KB (~${TOTAL_KTOKENS}K токенов). Требуется дедупликация (Апоптоз)!"
 else
-    echo "[СТАТУС МЕТАБОЛИЗМА] Общий вес контекста: ${TOTAL_KB}KB (В пределах нормы)."
+    echo "[СТАТУС МЕТАБОЛИЗМА] Общий вес контекста: ${TOTAL_KB}KB (~${TOTAL_KTOKENS}K токенов). В пределах нормы."
 fi
 
 if [[ $OVERSIZED_FILES -gt 0 || $TOTAL_KB -gt 150 ]]; then
