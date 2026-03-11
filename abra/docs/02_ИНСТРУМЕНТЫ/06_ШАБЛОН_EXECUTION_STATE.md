@@ -45,6 +45,7 @@
 **Правила переходов:**
 - `draft → approved` — только оператор (после ревью контракта)
 - `approved → in_progress` — cadabra при начале исполнения
+- `in_progress → in_progress` — cadabra при возобновлении после падения сессии (продолжает с первого незакрытого шага)
 - `in_progress → done` — cadabra после прохождения всех шагов DAG + COMPLETION_PROOF
 - `in_progress → blocked` — cadabra при провале верификации шага
 - `blocked → approved` — abra после анализа ERROR_LOG и правки контракта + оператор утверждает
