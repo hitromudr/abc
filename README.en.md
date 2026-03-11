@@ -46,12 +46,16 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 
 ### Analysis only (No installation required)
 
-Don't want to configure an IDE yet? Try the core logic (Architect mode) directly in your browser:
-👉 **[🔮 Play in the Sandbox (Poe.com)](https://poe.com/AbraCadabraDemoBot)**
+Download [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md) and attach it to any LLM chat:
 
-*Alternatively, you can download the [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md) file and attach it to any chat in ChatGPT / Claude / Gemini to run the analysis cycle manually.*
+| Platform | Model | How to run |
+|---|---|---|
+| [ChatGPT](https://chatgpt.com) | GPT-4o (free) | Attach file → write your task |
+| [Claude.ai](https://claude.ai) | Sonnet (free) | Attach file → write your task |
+| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (free, 1M context) | System Instructions → paste file content → write your task |
+| [Poe.com](https://poe.com/AbraCadabraDemoBot) | Sonnet (paid points) | Ready-made bot, just write your task |
 
-*Note: The sandbox runs only **abra** (analysis & protocol). For the full cycle (analysis + execution), an AI-IDE with file system access is required.*
+*Note: This runs only **abra** (analysis & protocol). For the full cycle (analysis + execution), an AI-IDE with file system access is required.*
 
 **Step 1 — Core Initialization.** In a new chat, type:
 

@@ -46,12 +46,14 @@ git submodule add https://github.com/hitromudr/abc.git .abracadabra
 
 ### Только анализ (любой web-чат)
 
-**Попробуйте конвейер в один клик (Песочница):**
-👉 [🔮 AbraCadabra Demo Bot (Poe.com)](https://poe.com/AbraCadabraDemoBot)
+Скачайте [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md) и прикрепите в любой чат с LLM:
 
-Или запустите локально:
-1. Скачайте [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТРУМЕНТЫ/03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md)
-2. Прикрепите в чат ChatGPT / Claude / Gemini и напишите задачу.
+| Площадка | Модель | Как запустить |
+|---|---|---|
+| [ChatGPT](https://chatgpt.com) | GPT-4o (бесплатно) | Прикрепите файл → напишите задачу |
+| [Claude.ai](https://claude.ai) | Sonnet (бесплатно) | Прикрепите файл → напишите задачу |
+| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (бесплатно, 1M контекст) | System Instructions → вставьте текст файла → напишите задачу |
+| [Poe.com](https://poe.com/AbraCadabraDemoBot) | Sonnet (платные поинты) | Готовый бот, просто напишите задачу |
 
 *Это только **abra** (анализ и протокол). Для полного цикла (анализ + исполнение) нужна AI-IDE с доступом к файловой системе.*
 
