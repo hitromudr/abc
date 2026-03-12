@@ -1,0 +1,95 @@
+benchmark_id: "002"
+name: "isearch_audit_gemini"
+date: "2026-03-12"
+target_repo: "isearch"
+target_commit_sha: "TODO"  # git -C ~/work/isearch rev-parse HEAD
+
+description: >
+  Тот же аудит isearch что и 001, но на Gemini 3.1 Pro.
+  Цель: сравнить эффект abracadabra на другой модели.
+
+environment:
+  baseline_model: "Gemini 3.1 Pro"
+  abra_model: "Gemini 3.1 Pro"
+  verdict_model: "TBD"
+  abra_version: "2.5.0"
+
+# Ground Truth: идентичен 001.
+ground_truth_bugs:
+  - id: GT-1
+    name: "E5 prefix mismatch"
+    severity: critical
+    description: >
+      Модель эмбеддингов E5 требует префикс 'query:' / 'passage:'.
+      Код использует модель без префикса — деградация качества поиска ~30%.
+    layer: product
+
+  - id: GT-2
+    name: "Scope file_type filter mismatch"
+    severity: critical
+    description: >
+      При поиске с ограничением scope=docs фильтр file_type не совпадает
+      с реальными значениями в Qdrant. Результат — пустой массив или падение.
+    layer: product
+
+  - id: GT-3
+    name: "Silent batch failures"
+    severity: high
+    description: >
+      Qdrant может отклонить часть батча (невалидный формат ID: unsigned vs int64),
+      но система не падает и не логирует потерю данных.
+    layer: infrastructure
+
+  - id: GT-4
+    name: "Concurrency race condition"
+    severity: high
+    description: >
+      Гонка данных при обновлении одних и тех же чанков из нескольких потоков.
+      Нет блокировок на уровне коллекции.
+    layer: infrastructure
+
+# Качество
+quality:
+  baseline_recall: null
+  abra_recall: null
+  baseline_total: null
+  abra_total: null
+  baseline_extras: null
+  abra_extras: null
+  baseline_hallucinations: null
+  abra_hallucinations: null
+  baseline_weighted_score: null  # critical=3, high=2, medium=1, low=0.5
+  abra_weighted_score: null
+
+# Ресурсы
+resources:
+  baseline:
+    input_tokens: null
+    output_tokens: null
+    total_tokens: null
+    wall_time_min: null
+    cost_usd: null
+  abra:
+    init_tokens: null        # overhead: загрузка базы знаний
+    input_tokens: null
+    output_tokens: null
+    total_tokens: null
+    wall_time_min: null
+    cost_usd: null
+  abra_overhead:
+    extra_tokens: null
+    extra_cost_usd: null
+    overhead_pct: null
+
+# Эффективность
+efficiency:
+  baseline_cost_per_gt_bug: null
+  abra_cost_per_gt_bug: null
+  baseline_cost_per_finding: null
+  abra_cost_per_finding: null
+  baseline_critical_per_1k_tokens: null
+  abra_critical_per_1k_tokens: null
+
+verdict:
+  winner: null
+  reason: null

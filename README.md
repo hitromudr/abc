@@ -176,7 +176,7 @@ abracadabra — экзоскелет, а не скафандр. Он для за
 
 | # | Проект | Задача | Baseline | abra | Verdict |
 |---|--------|--------|----------|------|---------|
-| 001 | [isearch](benchmarks/001_isearch_audit/) | Аудит: поиск багов | Claude Opus 4.6 | v2.5.0 | *pending* |
+| 001 | [isearch](benchmarks/001_isearch_audit/) | Аудит: поиск багов | Claude Opus 4.6 | v2.5.0 | [abra wins](benchmarks/001_isearch_audit/verdict.md) |
 
 ## Лицензия
 

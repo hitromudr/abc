@@ -11,7 +11,7 @@ description: >
 environment:
   baseline_model: "Claude Opus 4.6"
   abra_model: "Claude Opus 4.6"
-  verdict_model: "TBD"
+  verdict_model: "Claude Opus 4.6"
   abra_version: "2.5.0"
 
 # Ground Truth: известные баги isearch.
@@ -50,9 +50,54 @@ ground_truth_bugs:
       Нет блокировок на уровне коллекции.
     layer: infrastructure
 
-metrics:
-  baseline_recall: null   # GT-багов найдено / 4
-  abra_recall: null       # GT-багов найдено / 4
-  baseline_extras: null   # Валидных багов сверх GT
-  abra_extras: null       # Валидных багов сверх GT
-  verdict_winner: null
+# Качество
+quality:
+  baseline_recall: 0.50        # 2/4 (GT-2, GT-4)
+  abra_recall: 0.50            # 2/4 (GT-1, GT-2)
+  baseline_total: 21
+  abra_total: 15
+  baseline_extras: 19
+  abra_extras: 13
+  baseline_hallucinations: 0
+  abra_hallucinations: 0
+  # Weighted score: critical=3, high=2, medium=1, low=0.5
+  baseline_weighted_score: null  # TODO
+  abra_weighted_score: null      # TODO
+
+# Ресурсы (заполнять из usage stats среды после прогона)
+resources:
+  baseline:
+    input_tokens: null       # контекст (код проекта)
+    output_tokens: null      # ответ агента
+    total_tokens: null
+    wall_time_min: null      # минуты от старта до финиша
+    cost_usd: null           # по прайсу модели
+  abra:
+    init_tokens: null        # overhead: загрузка базы знаний (15 файлов)
+    input_tokens: null       # контекст (код + база знаний + pipeline)
+    output_tokens: null
+    total_tokens: null
+    wall_time_min: null
+    cost_usd: null
+  abra_overhead:             # расчётные
+    extra_tokens: null       # abra.total - baseline.total
+    extra_cost_usd: null     # abra.cost - baseline.cost
+    overhead_pct: null       # (extra / baseline.total) * 100
+
+# Эффективность
+efficiency:
+  baseline_cost_per_gt_bug: null     # cost / GT-bugs found
+  abra_cost_per_gt_bug: null
+  baseline_cost_per_finding: null    # cost / total findings
+  abra_cost_per_finding: null
+  baseline_critical_per_1k_tokens: null  # critical findings / (total_tokens / 1000)
+  abra_critical_per_1k_tokens: null
+
+verdict:
+  winner: "abra"
+  reason: >
+    Равный recall (50%), но abra нашёл GT-1 (E5 prefix, ~30% degradation)
+    + Path Traversal (security) + мета-паттерн (генератор багов).
+  caveat: >
+    Ресурсные метрики не собраны для 001 (ретроспективно недоступны).
+    Начиная с 002 — обязательный сбор.

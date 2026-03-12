@@ -1,4 +1,4 @@
-# Benchmark 001: Аудит проекта `isearch`
+# Benchmark 002: Аудит проекта `isearch` (Gemini 3.1 Pro)
 
 ## 🎯 Задача
 
@@ -24,5 +24,5 @@
 Бенчмарк проводится в 3 чистых сессиях:
 
 1. **Baseline Run:** Чистая LLM (без `abracadabra`) получает эту задачу. Результат → `baseline.md`.
-2. **Abra Run:** LLM с фреймворком `abracadabra` (`abra init` → `abra audit 001`). Результат → `abra.md`.
+2. **Abra Run:** LLM с фреймворком `abracadabra` (`abra init` → `abra audit 002`). Результат → `abra.md`.
 3. **Verdict:** Независимый арбитр сравнивает оба отчёта с Ground Truth из `meta.yml`. Результат → `verdict.md`.
