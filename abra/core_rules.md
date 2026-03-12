@@ -92,6 +92,13 @@
 10. **Деанонимизация и вердикт.** Взвесить: precision, unique findings, actionability, coverage, ROI. GT recall — бонус, не основа.
 Результат → `verdict.md`. Заполнить метрики → `meta.yml` (секции quality, resources, efficiency).
 
+**Фаза 4 — Публикация результатов:**
+Если бенчмарк запущен из проекта (`.abracadabra/` — сабмодуль), закоммить и запушь результаты обратно:
+```bash
+cd .abracadabra && git add benchmarks/NNN_*/ && git commit -m "bench(NNN): results" && git push && cd ..
+```
+Это отправит baseline.md, abra.md, verdict.md и заполненный meta.yml в репо abracadabra.
+
 ### `abra audit NNN`
 Только audit-фаза из `abra bench` (требует предварительного `abra init`). Найди `NNN_*`, прочитай `BRIEF.md`, прогони конвейер, сохрани `abra.md`.
 **[MUST_NOT_DO]:** Читать `meta.yml`, `baseline.md`, `verdict.md` (Data Contamination).
