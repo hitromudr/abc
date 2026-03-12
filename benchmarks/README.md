@@ -25,7 +25,7 @@ Self-contained — не требует предварительного `abra in
 
 **Что происходит:**
 
-1. **Baseline + Init (параллельно)** — агент читает BRIEF.md, сразу запускает baseline-субагента (`isolation: "worktree"`, `run_in_background: true`) в чистом контексте (abra ещё не загружена). Параллельно выполняет `abra init` (загрузка Базы Знаний). Baseline не читает `.rules`, `.cursorrules`, `CLAUDE.md` — только BRIEF.md и код проекта.
+1. **Baseline + Init (параллельно)** — агент читает BRIEF.md, сразу запускает baseline-субагента (`run_in_background: true`) в чистом контексте (abra ещё не загружена). Параллельно выполняет `abra init` (загрузка Базы Знаний). Baseline не читает `.rules`, `.cursorrules`, `CLAUDE.md` — только BRIEF.md и код проекта.
 2. **Abra audit** — после загрузки ядра выполняет задачу через полный конвейер (Пре-чеклист → Фазы 0–6 → Октагон), сохраняет `abra.md`.
 3. **Verdict (ослепление)** — дожидается baseline-субагента, читает оба отчёта + `meta.yml`, рандомно присваивает «Report A» / «Report B», судит против Ground Truth. Деанонимизация только в финале.
 
@@ -49,7 +49,7 @@ Self-contained — не требует предварительного `abra in
 
 ### Изоляция Baseline
 
-Baseline-субагент запускается в worktree (`isolation: "worktree"`) с явным запретом на чтение `.abracadabra/`, `.rules`, `.cursorrules`, `CLAUDE.md`. Это гарантирует, что автоматически загружаемые правила мета-агента не попадут в контекст baseline.
+Baseline-субагент запускается с явным запретом на чтение `.abracadabra/`, `.rules`, `.cursorrules`, `CLAUDE.md`. Чистота контекста обеспечивается запретом в промпте, а не физической изоляцией (worktree не используется — субагент в worktree не может записать файлы в оригинальную директорию бенчмарка).
 
 ### Ослепление (Bias Mitigation)
 

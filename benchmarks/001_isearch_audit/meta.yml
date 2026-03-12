@@ -2,7 +2,7 @@ benchmark_id: "001"
 name: "isearch_audit"
 date: "2026-03-12"
 target_repo: "isearch"
-target_commit_sha: "TODO"  # Заполнить перед прогоном: git -C ~/work/isearch rev-parse HEAD
+target_commit_sha: "MUST_SET_BEFORE_RUN"  # ОБЯЗАТЕЛЬНО: git -C ~/work/isearch rev-parse HEAD. GT-1/GT-2 исправлены после первого прогона.
 
 description: >
   Глубокий аудит кодовой базы isearch на предмет

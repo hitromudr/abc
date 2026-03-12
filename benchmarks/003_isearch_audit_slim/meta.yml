@@ -2,7 +2,7 @@ benchmark_id: "003"
 name: "isearch_audit_slim"
 date: "2026-03-12"
 target_repo: "isearch"
-target_commit_sha: "TODO"  # git -C ~/work/isearch rev-parse HEAD
+target_commit_sha: "MUST_SET_BEFORE_RUN"  # ОБЯЗАТЕЛЬНО: git -C ~/work/isearch rev-parse HEAD
 
 description: >
   Тот же аудит isearch что и 001, но на слимленной версии abracadabra (v3.0-slim).
@@ -15,7 +15,9 @@ environment:
   verdict_model: "Claude Opus 4.6"
   abra_version: "3.0-slim"  # develop branch, радикальный слим
 
-# Ground Truth: идентичен 001.
+# Ground Truth: ВНИМАНИЕ — GT-1 и GT-2 исправлены в текущем коде isearch
+# (E5 → MiniLM, chunker.py удалён). GT валиден только для коммита из 001.
+# Перед прогоном: обновить GT под актуальный коммит или зафиксировать target_commit_sha.
 ground_truth_bugs:
   - id: GT-1
     name: "E5 prefix mismatch"
