@@ -71,6 +71,7 @@ Baseline-субагент запускается в worktree (`isolation: "workt
 |---|--------|--------|----------|------|---------|
 | **001** | `isearch` | Аудит: поиск багов | Claude Opus 4.6 | v2.5.0 | [abra wins (50/50 recall, quality edge)](001_isearch_audit/verdict.md) |
 | **002** | `isearch` | Аудит: поиск багов | Gemini 3.1 Pro | v2.5.0 | *pending* |
+| **003** | `isearch` | Аудит: поиск багов | Claude Opus 4.6 | v3.0-slim | *pending* |
 
 ---
 *«Разница, которая не создаёт разницы в физическом мире, не имеет значения» (Фильтр 5: Джеймс).*

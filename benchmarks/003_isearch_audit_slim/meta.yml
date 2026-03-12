@@ -1,0 +1,110 @@
+benchmark_id: "003"
+name: "isearch_audit_slim"
+date: "2026-03-12"
+target_repo: "isearch"
+target_commit_sha: "TODO"  # git -C ~/work/isearch rev-parse HEAD
+
+description: >
+  Тот же аудит isearch что и 001, но на слимленной версии abracadabra (v3.0-slim).
+  Цель: проверить, что радикальное сокращение базы знаний не ухудшает качество.
+  Сравнение: 003 (slim) vs 001 (full) на одном Ground Truth.
+
+environment:
+  baseline_model: "Claude Opus 4.6"
+  abra_model: "Claude Opus 4.6"
+  verdict_model: "Claude Opus 4.6"
+  abra_version: "3.0-slim"  # develop branch, радикальный слим
+
+# Ground Truth: идентичен 001.
+ground_truth_bugs:
+  - id: GT-1
+    name: "E5 prefix mismatch"
+    severity: critical
+    description: >
+      Модель эмбеддингов E5 требует префикс 'query:' / 'passage:'.
+      Код использует модель без префикса — деградация качества поиска ~30%.
+    layer: product
+
+  - id: GT-2
+    name: "Scope file_type filter mismatch"
+    severity: critical
+    description: >
+      При поиске с ограничением scope=docs фильтр file_type не совпадает
+      с реальными значениями в Qdrant. Результат — пустой массив или падение.
+    layer: product
+
+  - id: GT-3
+    name: "Silent batch failures"
+    severity: high
+    description: >
+      Qdrant может отклонить часть батча (невалидный формат ID: unsigned vs int64),
+      но система не падает и не логирует потерю данных.
+    layer: infrastructure
+
+  - id: GT-4
+    name: "Concurrency race condition"
+    severity: high
+    description: >
+      Гонка данных при обновлении одних и тех же чанков из нескольких потоков.
+      Нет блокировок на уровне коллекции.
+    layer: infrastructure
+
+# Качество
+quality:
+  baseline_recall: null
+  abra_recall: null
+  baseline_total: null
+  abra_total: null
+  baseline_extras: null
+  abra_extras: null
+  baseline_hallucinations: null
+  abra_hallucinations: null
+  baseline_weighted_score: null
+  abra_weighted_score: null
+  severity_calibration:
+    baseline: null
+    abra: null
+  coverage:
+    baseline_files_read: null
+    abra_files_read: null
+
+# Ресурсы
+resources:
+  baseline:
+    input_tokens: null
+    output_tokens: null
+    total_tokens: null
+    wall_time_min: null
+    cost_usd: null
+  abra:
+    init_tokens: null        # overhead: загрузка базы знаний (5 файлов вместо 20+)
+    input_tokens: null
+    output_tokens: null
+    total_tokens: null
+    wall_time_min: null
+    cost_usd: null
+  abra_overhead:
+    extra_tokens: null
+    extra_cost_usd: null
+    overhead_pct: null
+
+# Эффективность
+efficiency:
+  baseline_cost_per_gt_bug: null
+  abra_cost_per_gt_bug: null
+  baseline_cost_per_finding: null
+  abra_cost_per_finding: null
+  baseline_critical_per_1k_tokens: null
+  abra_critical_per_1k_tokens: null
+
+# Сравнение с 001 (full abra)
+comparison_with_001:
+  recall_delta: null          # 003.recall - 001.recall
+  weighted_score_delta: null  # 003.weighted - 001.weighted
+  init_tokens_saved: null     # 001.init_tokens - 003.init_tokens
+  total_tokens_saved: null
+  quality_preserved: null     # true/false
+
+verdict:
+  winner: null
+  reason: null
