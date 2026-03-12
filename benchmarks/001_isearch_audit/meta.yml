@@ -1,0 +1,58 @@
+benchmark_id: "001"
+name: "isearch_audit"
+date: "2026-03-12"
+target_repo: "isearch"
+target_commit_sha: "TODO"  # Заполнить перед прогоном: git -C ~/work/isearch rev-parse HEAD
+
+description: >
+  Глубокий аудит кодовой базы isearch на предмет
+  инфраструктурных, логических и продуктовых ошибок.
+
+environment:
+  baseline_model: "Claude Opus 4.6"
+  abra_model: "Claude Opus 4.6"
+  verdict_model: "TBD"
+  abra_version: "2.5.0"
+
+# Ground Truth: известные баги isearch.
+# Этот файл НЕ передаётся тестируемым агентам.
+# Используется только судьёй (verdict) для вычисления Recall.
+ground_truth_bugs:
+  - id: GT-1
+    name: "E5 prefix mismatch"
+    severity: critical
+    description: >
+      Модель эмбеддингов E5 требует префикс 'query:' / 'passage:'.
+      Код использует модель без префикса — деградация качества поиска ~30%.
+    layer: product
+
+  - id: GT-2
+    name: "Scope file_type filter mismatch"
+    severity: critical
+    description: >
+      При поиске с ограничением scope=docs фильтр file_type не совпадает
+      с реальными значениями в Qdrant. Результат — пустой массив или падение.
+    layer: product
+
+  - id: GT-3
+    name: "Silent batch failures"
+    severity: high
+    description: >
+      Qdrant может отклонить часть батча (невалидный формат ID: unsigned vs int64),
+      но система не падает и не логирует потерю данных.
+    layer: infrastructure
+
+  - id: GT-4
+    name: "Concurrency race condition"
+    severity: high
+    description: >
+      Гонка данных при обновлении одних и тех же чанков из нескольких потоков.
+      Нет блокировок на уровне коллекции.
+    layer: infrastructure
+
+metrics:
+  baseline_recall: null   # GT-багов найдено / 4
+  abra_recall: null       # GT-багов найдено / 4
+  baseline_extras: null   # Валидных багов сверх GT
+  abra_extras: null       # Валидных багов сверх GT
+  verdict_winner: null
