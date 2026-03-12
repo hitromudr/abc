@@ -1,133 +1,152 @@
-# Verdict: Benchmark 001 — isearch_audit
+# Verdict: Benchmark 001 — Аудит iSearch (Re-run)
 
-**Judge:** Claude Opus 4.6 | **Date:** 2026-03-12
-
----
-
-## 1. Матрица покрытия Ground Truth
-
-| GT-ID | Баг | Severity | Baseline | Abra |
-|-------|-----|----------|----------|------|
-| GT-1 | E5 prefix mismatch (`query:`/`passage:`) | critical | **MISS** | **HIT** — Дефект #4 (P0) |
-| GT-2 | Scope `file_type` filter (`"doc"` != `"docs"`) | critical | **HIT** — Дефект #4 (HIGH) | **HIT** — Дефект #3 (P0) |
-| GT-3 | Silent batch failures (uint64 vs int64) | high | **MISS** — #1 про hash collision, не batch rejection | **MISS** — #2 про PYTHONHASHSEED, не batch rejection |
-| GT-4 | Concurrency race condition (collection-level) | high | **HIT** — Дефект #2 (CRITICAL): "Гонка при upsert/delete в одну коллекцию" | **MISS** — #5 про TASK_STATUS dict thread safety (другой race condition) |
-
-### Recall
-
-| Метрика | Baseline | Abra |
-|---------|----------|------|
-| GT-багов найдено | 2/4 | 2/4 |
-| **Recall** | **50%** | **50%** |
-
-**Примечание:** Recall одинаковый, но покрытие ортогональное — baseline нашёл GT-2 + GT-4, abra нашёл GT-1 + GT-2. Единственное пересечение — GT-2.
+**Judge:** Claude Opus 4.6 | **Date:** 2026-03-12 | **Protocol:** abra bench (blinded A/B)
 
 ---
 
-## 2. Extras (валидные баги сверх Ground Truth)
+## 1. Ослепление (Blinding)
 
-### Baseline extras (19)
+Отчётам присвоены анонимные метки:
+- **Report A** — один из двух
+- **Report B** — другой из двух
 
-| # | Дефект | Severity | Валидность |
-|---|--------|----------|------------|
-| 1 | Hash-based ID (PYTHONHASHSEED + collision) | CRITICAL | Valid |
-| 3 | TASK_STATUS memory leak | CRITICAL | Valid |
-| 5 | extract_snippet — missing start_line/end_line | HIGH | Valid |
-| 6 | State file зависит от PROJECTS_BASE_DIR | HIGH | Valid |
-| 7 | Scroll limit=10000 без пагинации | HIGH | Valid |
-| 8 | Дублирование PROJECTS_BASE_DIR в .env | HIGH | Valid |
-| 9 | should-фильтр при массовом удалении | HIGH | Valid |
-| 10 | CORS wildcard + credentials | MEDIUM | Valid |
-| 11 | Пустая строка в docs_extensions | MEDIUM | Valid |
-| 12 | Нет аутентификации | MEDIUM | Valid |
-| 13 | Нет rate limiting | MEDIUM | Valid |
-| 14 | Version mismatch pyproject/setup.py | MEDIUM | Valid |
-| 15 | Global mutable state для ML-моделей | MEDIUM | Valid |
-| 16 | Brace-based chunker ломается на литералах | MEDIUM | Valid |
-| 17 | print() вместо logging | MEDIUM | Valid |
-| 18 | Дублированные комментарии | LOW | Valid |
-| 19 | Дублированные импорты | LOW | Valid |
-| 20 | Избыточное INFO-логирование | LOW | Valid |
-| 21 | Health check не пингует Qdrant | LOW | Valid |
-
-### Abra extras (13)
-
-| # | Дефект | Severity | Валидность |
-|---|--------|----------|------------|
-| 1 | **Path Traversal** (project_name из URL) | P0 (CRITICAL) | **Valid — уникальная security-находка** |
-| 2 | Нестабильные ID (PYTHONHASHSEED) | P0 | Valid |
-| 5 | Race condition TASK_STATUS dict | P1 | Valid |
-| 6 | Memory leak TASK_STATUS | P1 | Valid |
-| 7 | Scroll limit=10000 | P1 | Valid |
-| 8 | CORS wildcard + credentials | P1 | Valid |
-| 9 | Keyword boosting `"docs"` vs `"doc"` | P1 | Valid (производная GT-2) |
-| 10 | Не-атомарная запись state | P2 | Valid |
-| 11 | Пустая строка в extensions | P2 | Valid |
-| 12 | Health check не пингует Qdrant | P2 | Valid |
-| 13 | State file в неожиданном месте | P2 | Valid |
-| 14 | Brace-based chunker | P2 | Valid |
-| 15 | Дублированные импорты | P2 | Valid |
-
-### Галлюцинации
-
-| Агент | Количество | Детали |
-|-------|-----------|--------|
-| Baseline | 0 | Все находки привязаны к file:line, верифицируемы |
-| Abra | 0 | Все находки привязаны к file:line, верифицируемы |
+Раскрытие — в секции 5.
 
 ---
 
-## 3. Сравнительный анализ
+## 2. Recall по Ground Truth
 
-### Количественный
+| GT-ID | Bug | Severity | Weight | Report A | Report B |
+|-------|-----|----------|--------|----------|----------|
+| GT-1 | E5 prefix mismatch | critical | 3 | ✓ (P2 Medium — занижен) | ✓ (**CRITICAL** — точно) |
+| GT-2 | Scope `file_type` `"doc"` ≠ `"docs"` | critical | 3 | ✓ (P1 Serious — занижен) | ✓ (**CRITICAL** — точно) |
+| GT-3 | Silent batch failures (uint64 ID) | high | 2 | ✓ (P0 — ID instability) | ✓ (CRITICAL — ID instability) |
+| GT-4 | Concurrency race (collection-level) | high | 2 | ✓ (P1 — parallel indexing) | ½ (H-2: TASK_STATUS race only) |
 
-| Метрика | Baseline | Abra | Преимущество |
-|---------|----------|------|-------------|
-| GT Recall | 2/4 (50%) | 2/4 (50%) | Паритет |
-| Total findings | 21 | 15 | Baseline (+6) |
-| CRITICAL/P0 | 3 | 4 | Abra (+1) |
-| HIGH/P1 | 6 | 5 | Baseline (+1) |
-| Extras | 19 | 13 | Baseline (+6) |
-| Hallucinations | 0 | 0 | Паритет |
-| Уникальные GT | GT-4 | GT-1 | — |
+| Metric | Report A | Report B |
+|--------|----------|----------|
+| Raw Recall | **4/4 (100%)** | 3.5/4 (87.5%) |
+| Weighted Recall (из 10) | **10** | 9 |
+| Severity Accuracy (exact match with GT) | 1/4 | **3/4** |
 
-### Качественный
+**Разбор GT-3:** Оба отчёта нашли проблему с `abs(hash())` — нестабильность ID и коллизии. GT-3 описывает "silent batch failures" из-за формата ID (unsigned vs int64). Оба покрывают корневую причину (генерация ID), хотя ни один не описал точный механизм тихого partial rejection Qdrant API. Считаю обоим ✓ (нашли root cause).
 
-**Baseline сильнее в:**
-- **Охват**: 21 vs 15 дефектов. Больше LOW/MEDIUM находок (print vs logging, verbose logging, duplicate comments).
-- **GT-4 (collection-level race)**: Точно идентифицировал гонку при параллельной индексации в Qdrant. Abra нашёл только побочный race в dict.
-- **extract_snippet**: Уникальная находка (#5) — baseline единственный, кто заметил, что `start_line`/`end_line` отсутствуют в payload.
-- **Формат**: Каждый баг снабжён code snippet — удобно для разработчика.
-
-**Abra сильнее в:**
-- **GT-1 (E5 prefix)**: Критическая находка, baseline полностью пропустил. ~30% деградация retrieval quality — самый импактный product-баг в системе поиска.
-- **Path Traversal**: Security-critical уязвимость вне GT. Baseline не заметил. `../../etc` обходит `is_dir()` и даёт доступ к файловой системе сервера.
-- **Мета-паттерн**: Связал 3 дефекта (#3, #9, #11) общим корнем — рассогласование строковых констант без enum. Baseline перечислил их как изолированные баги.
-- **Системное решение**: Предложил `FileType(str, Enum)` и стратегическую развилку (Quick Fixes vs Structural Hardening).
-- **Структура**: Октагон-анализ привязал каждый баг к оси выживания (Телос, Иммунитет, Наследственность), что даёт архитектурный контекст.
+**Разбор GT-4:** Report A (§2.5) явно описал: «два запроса POST /index запустят параллельные задачи, пишущие в одну коллекцию → corrupted state». Report B нашёл только race в `TASK_STATUS` dict — другой объект, другой механизм. Полу-попадание.
 
 ---
 
-## 4. Вердикт
+## 3. Extras и Hallucinations
 
-**Победитель: abra (с небольшим отрывом)**
+| Metric | Report A | Report B |
+|--------|----------|----------|
+| Total findings | **29** | 24 |
+| GT-related | 4 | 3.5 |
+| Extras (valid non-GT) | **25** | 20.5 |
+| Hallucinations | 0 | 0 |
 
-При одинаковом Recall (50%) и меньшем общем числе находок (15 vs 21), abra выигрывает по **ценности критических находок**:
+### Уникальные находки Report A (отсутствуют в B):
 
-1. **GT-1 (E5 prefix)** — baseline пропустил единственный баг, ради которого система поиска создавалась. Без `query:`/`passage:` вся e5-модель работает в деградированном режиме. Это не просто баг — это отказ ядра продукта.
+| Finding | Severity | Комментарий |
+|---------|----------|-------------|
+| Dead code: `index.py` (нерабочие legacy imports) | P1 | Мёртвый скрипт, вводит в заблуждение |
+| Dead code: `search.py` (аналогично) | P1 | Аналогично |
+| `start_line`/`end_line` не в payload → snippets = строка 1 | P3 | **Функционально важно** |
+| Boost score mutation нарушает порядок сортировки | P2 | Неинтуитивный reranking |
+| `extract_snippet` читает весь файл в память | P2 | Потенциальная memory проблема |
+| Docker port comments перепутаны (6333=REST) | P2 | Фактическая ошибка |
+| Дублирование `clearProjectCache` в `app.js` | P2 | Единственный, кто проверил frontend |
+| No rate limiting | P3 | DoS surface |
+| No graceful shutdown для background tasks | P3 | State consistency |
+| Dependency file desync | P3 | Maintenance |
+| Double import system via `pytest.ini` | P3 | Testing stability |
+| Excessive INFO logging | P3 | Log pollution |
 
-2. **Path Traversal** — security-уязвимость, отсутствующая даже в Ground Truth. В реальном инциденте это эскалация до RCE.
+### Уникальные находки Report B (отсутствуют в A):
 
-3. **Мета-анализ** — abra не просто нашёл баги, а нашёл **генератор багов** (отсутствие enum для file_type). Baseline нашёл симптомы, abra нашёл причину.
-
-Baseline компенсирует это широтой (extract_snippet, no auth, no rate limiting, version mismatch, global state) и точным попаданием в GT-4. Но в продуктовом контексте пропуск E5 prefix дороже, чем 6 дополнительных MEDIUM/LOW находок.
-
-**Счёт: abra 7 : baseline 6** (условные баллы по весу находок)
+| Finding | Severity | Комментарий |
+|---------|----------|-------------|
+| AST outline как поисковый чанк → шум | MEDIUM | Quality degradation |
+| Pinned deps блокируют security patches | MEDIUM | CVE risk |
+| Internal exceptions утекают через API | MEDIUM | Info disclosure |
 
 ---
 
-## 5. Общие слепые зоны
+## 4. Weighted Score
 
-Оба агента пропустили **GT-3 (Silent batch failures)**. Механизм: Qdrant может отклонить часть батча при несовпадении формата ID (unsigned vs int64), но система не проверяет ответ и не логирует потерю. Оба агента нашли проблему с hash-based ID (нестабильность, коллизии), но не идентифицировали тихий partial rejection на уровне Qdrant API.
+Weights: critical=3, high=2, medium=1, low=0.5
 
-**Гипотеза:** Этот баг требует знания внутренней семантики Qdrant batch API (что upsert может быть частичным), что выходит за рамки статического code review.
+| Report | Critical×3 | High×2 | Medium×1 | Low×0.5 | **Total** |
+|--------|-----------|--------|----------|---------|-----------|
+| A | 4×3=12 | 7×2=14 | 9×1=9 | 9×0.5=4.5 | **39.5** |
+| B | 4×3=12 | 7×2=14 | 11×1=11 | 2×0.5=1 | **38.0** |
+
+---
+
+## 5. Деанонимизация
+
+| Label | Agent |
+|-------|-------|
+| **Report A** | **Baseline** (vanilla LLM, без фреймворка) |
+| **Report B** | **Abra** (с фреймворком abracadabra) |
+
+---
+
+## 6. Сравнительный анализ
+
+### Baseline сильнее в:
+
+1. **Raw Recall: 100% vs 87.5%.** Нашёл все 4 GT-бага, включая GT-4 (collection-level race при параллельной индексации).
+2. **Breadth: 29 vs 24.** Покрыл frontend (app.js), legacy dead code, runtime edge cases, tooling.
+3. **Weighted Score: 39.5 vs 38.0.**
+4. **`start_line`/`end_line` gap** — единственный, кто заметил, что snippet extraction бесполезен (payload не содержит line numbers, fallback всегда = строка 1).
+5. **Кросс-слойный охват** — frontend, backend, infra, config, deps, legacy. Abra не тронул app.js, index.py, search.py.
+
+### Abra сильнее в:
+
+1. **Severity Calibration: 3/4 vs 1/4.** GT-1 (E5 prefix, ~30% degradation) корректно CRITICAL. Baseline занизил до P2 Medium — в реальной приоритизации этот баг ждал бы очереди.
+2. **Root Cause Analysis.** Мета-паттерн: "Гомеостаз = 0" — все баги порождены отсутствием верификации контрактов между слоями. Инварианты (Закон контрактной целостности, Закон детерминизма ID, Закон мембраны) предсказывают будущие классы багов.
+3. **Actionability.** Конкретный Fix к каждому дефекту + стратегическая развилка (Hotfix vs Hardening Sprint).
+4. **Структурная глубина.** Протокол (Topology → Invariants → Leverage Point → Degradation Paths) даёт архитектурный контекст, а не flat list.
+
+---
+
+## 7. Вердикт
+
+### Сводка
+
+| Dimension | Winner | Delta |
+|-----------|--------|-------|
+| GT Recall (raw) | **Baseline** | 100% vs 87.5% |
+| GT Severity Accuracy | **Abra** | 3/4 vs 1/4 |
+| Total Findings | **Baseline** | 29 vs 24 |
+| Weighted Score | **Baseline** | 39.5 vs 38.0 |
+| Hallucinations | Tie | 0 = 0 |
+| Root Cause Depth | **Abra** | meta-pattern vs flat list |
+| Actionability | **Abra** | fix per bug + strategy |
+
+### Финальное решение: **TIE (Ничья)**
+
+**Обоснование:**
+
+Baseline (vanilla Opus 4.6) превзошёл Abra по **количественным** метрикам: recall 100% vs 87.5%, findings 29 vs 24, weighted score 39.5 vs 38.0. Модель без фреймворка показала исключительно тщательное сканирование, покрыв frontend, legacy code, runtime edge cases — области, которые Abra пропустил.
+
+Abra превзошёл по **качественным** метрикам: severity calibration 3/4 vs 1/4, root cause analysis, структурированные рекомендации. Занижение severity — не нейтральная ошибка: E5 prefix как P2 Medium → "починим потом" вместо "чиним сегодня". В реальной инженерной практике калибровка severity определяет порядок исправления.
+
+Оба отчёта имеют 0 галлюцинаций и высокое качество верификации (file:line references).
+
+**Количественное преимущество Baseline vs качественное преимущество Abra = паритет.**
+
+### Гипотеза
+
+Abra тратит ~50% контекстного окна на загрузку 15 файлов базы знаний. Это "цена входа" фреймворка, которая уменьшает бюджет внимания на breadth-first сканирование кода. Baseline использует весь контекст на код → больше находок, но с хуже калиброванной severity.
+
+### Caveats
+- Baseline не был полностью изолирован: `CLAUDE.md` abracadabra загружается автоматически в Claude Code.
+- Ресурсные метрики (tokens, time, cost) не собраны.
+- N=1 — для статистической значимости нужны 5+ бенчмарков.
+
+---
+
+## 8. Общая слепая зона
+
+**GT-3 (точный механизм):** Оба нашли root cause (нестабильные ID через `hash()`), но ни один не описал точный симптом: Qdrant может тихо отклонить часть batch при несовпадении unsigned int64 формата. Это требует знания Qdrant internal API behaviour, выходящего за рамки static code review.
