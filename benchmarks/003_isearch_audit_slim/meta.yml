@@ -2,110 +2,99 @@ benchmark_id: "003"
 name: "isearch_audit_slim"
 date: "2026-03-12"
 target_repo: "isearch"
-target_commit_sha: "MUST_SET_BEFORE_RUN"  # ОБЯЗАТЕЛЬНО: git -C ~/work/isearch rev-parse HEAD
+target_commit_sha: "MUST_SET_BEFORE_RUN"  # git -C ~/work/isearch rev-parse HEAD
 
 description: >
-  Тот же аудит isearch что и 001, но на слимленной версии abracadabra (v3.0-slim).
+  Аудит isearch на слимленной версии abracadabra (v3.0-slim).
   Цель: проверить, что радикальное сокращение базы знаний не ухудшает качество.
-  Сравнение: 003 (slim) vs 001 (full) на одном Ground Truth.
 
 environment:
   baseline_model: "Claude Opus 4.6"
   abra_model: "Claude Opus 4.6"
   verdict_model: "Claude Opus 4.6"
-  abra_version: "3.0-slim"  # develop branch, радикальный слим
+  abra_version: "3.0-slim"
 
-# Ground Truth: ВНИМАНИЕ — GT-1 и GT-2 исправлены в текущем коде isearch
-# (E5 → MiniLM, chunker.py удалён). GT валиден только для коммита из 001.
-# Перед прогоном: обновить GT под актуальный коммит или зафиксировать target_commit_sha.
+# Ground Truth (ОПЦИОНАЛЬНО — бонусная метрика, не основа вердикта).
+# ВНИМАНИЕ: GT-1 и GT-2 исправлены в текущем коде isearch.
+# GT валиден только для коммита из bench 001.
 ground_truth_bugs:
   - id: GT-1
     name: "E5 prefix mismatch"
     severity: critical
+    status: STALE  # исправлен: модель сменена на MiniLM
     description: >
-      Модель эмбеддингов E5 требует префикс 'query:' / 'passage:'.
-      Код использует модель без префикса — деградация качества поиска ~30%.
+      Модель E5 требует префикс 'query:'/'passage:'.
+      Код не использует — деградация ~30%.
     layer: product
 
   - id: GT-2
     name: "Scope file_type filter mismatch"
     severity: critical
+    status: STALE  # исправлен: chunker.py удалён
     description: >
-      При поиске с ограничением scope=docs фильтр file_type не совпадает
-      с реальными значениями в Qdrant. Результат — пустой массив или падение.
+      file_type "doc" vs "docs" — scope=docs сломан.
     layer: product
 
   - id: GT-3
     name: "Silent batch failures"
     severity: high
+    status: ACTIVE
     description: >
-      Qdrant может отклонить часть батча (невалидный формат ID: unsigned vs int64),
-      но система не падает и не логирует потерю данных.
+      hash()-based ID недетерминистичен (PYTHONHASHSEED).
+      Дубли при reindex. abs() удваивает коллизии.
     layer: infrastructure
 
   - id: GT-4
     name: "Concurrency race condition"
     severity: high
+    status: ACTIVE
     description: >
-      Гонка данных при обновлении одних и тех же чанков из нескольких потоков.
-      Нет блокировок на уровне коллекции.
+      Гонка данных при параллельной индексации.
+      Нет per-project блокировок.
     layer: infrastructure
 
-# Качество
+# Качество (GT-free — основные метрики)
 quality:
-  baseline_recall: null
-  abra_recall: null
-  baseline_total: null
-  abra_total: null
-  baseline_extras: null
-  abra_extras: null
-  baseline_hallucinations: null
-  abra_hallucinations: null
-  baseline_weighted_score: null
-  abra_weighted_score: null
-  severity_calibration:
-    baseline: null
-    abra: null
-  coverage:
-    baseline_files_read: null
-    abra_files_read: null
+  baseline:
+    total_findings: null
+    verified: null           # подтверждены по коду
+    plausible: null          # требуют runtime-проверки
+    false_positives: null    # галлюцинации
+    precision: null          # verified / total
+    actionable: null         # с указанием строки + root cause + fix
+    unique_findings: null    # не найдены другим отчётом
+    weighted_score: null     # critical=3, high=2, medium=1, low=0.5
+    files_read: null         # coverage
+  abra:
+    total_findings: null
+    verified: null
+    plausible: null
+    false_positives: null
+    precision: null
+    actionable: null
+    unique_findings: null
+    weighted_score: null
+    files_read: null
+
+# GT recall (опционально)
+gt_recall:
+  baseline: null    # e.g. 2/4
+  abra: null
 
 # Ресурсы
 resources:
   baseline:
-    input_tokens: null
-    output_tokens: null
     total_tokens: null
     wall_time_min: null
     cost_usd: null
   abra:
-    init_tokens: null        # overhead: загрузка базы знаний (5 файлов вместо 20+)
-    input_tokens: null
-    output_tokens: null
+    init_tokens: null
     total_tokens: null
     wall_time_min: null
     cost_usd: null
-  abra_overhead:
-    extra_tokens: null
-    extra_cost_usd: null
-    overhead_pct: null
-
-# Эффективность
-efficiency:
-  baseline_cost_per_gt_bug: null
-  abra_cost_per_gt_bug: null
-  baseline_cost_per_finding: null
-  abra_cost_per_finding: null
-  baseline_critical_per_1k_tokens: null
-  abra_critical_per_1k_tokens: null
-
-# Сравнение с 001 (full abra)
-comparison_with_001:
-  recall_delta: null          # 003.recall - 001.recall
-  weighted_score_delta: null  # 003.weighted - 001.weighted
-  init_tokens_saved: null     # 001.init_tokens - 003.init_tokens
-  total_tokens_saved: null
-  quality_preserved: null     # true/false
+  overhead:
+    extra_tokens_pct: null   # (abra.total - baseline.total) / baseline.total * 100
+    extra_time_pct: null
 
 verdict:
   winner: null

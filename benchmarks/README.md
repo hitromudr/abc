@@ -27,7 +27,7 @@ Self-contained — не требует предварительного `abra in
 
 1. **Baseline + Init (параллельно)** — агент читает BRIEF.md, сразу запускает baseline-субагента (`run_in_background: true`) в чистом контексте (abra ещё не загружена). Параллельно выполняет `abra init` (загрузка Базы Знаний). Baseline не читает `.rules`, `.cursorrules`, `CLAUDE.md` — только BRIEF.md и код проекта.
 2. **Abra audit** — после загрузки ядра выполняет задачу через полный конвейер (Пре-чеклист → Фазы 0–6 → Октагон), сохраняет `abra.md`.
-3. **Verdict (ослепление)** — дожидается baseline-субагента, читает оба отчёта + `meta.yml`, рандомно присваивает «Report A» / «Report B», судит против Ground Truth. Деанонимизация только в финале.
+3. **Verdict (ослепление, GT-free)** — дожидается baseline-субагента, читает оба отчёта + `meta.yml`, рандомно присваивает «Report A» / «Report B». Верифицирует каждую находку по коду. Деанонимизация только в финале.
 
 Одна сессия, ноль ручной работы.
 
@@ -53,15 +53,27 @@ Baseline-субагент запускается с явным запретом 
 
 ### Ослепление (Bias Mitigation)
 
-Судья (фаза verdict) получает отчёты как «Report A» и «Report B» без маркеров авторства. Объективные метрики (recall, weighted score, severity calibration) не зависят от bias. Субъективные оценки (глубина, actionability) защищены ослеплением. Деанонимизация — только после вынесения вердикта.
+Судья (фаза verdict) получает отчёты как «Report A» и «Report B» без маркеров авторства. Все метрики вычисляются до деанонимизации.
 
-### Метрики verdict
+### Метрики verdict (GT-free)
 
-- **Recall** — нашёл / не нашёл GT-баг
-- **Severity calibration** — совпала ли присвоенная severity с реальной. Правильная приоритизация одного critical > обнаружение пяти LOW
-- **Weighted score** — critical=3, high=2, medium=1, low=0.5
-- **Coverage map** — какие файлы прочитал каждый агент (breadth vs depth)
+Основные метрики не зависят от заранее известных багов:
+
+- **Верификация** — для каждой находки: открыть файл/строку, проверить по коду. Категории: `verified` / `plausible` / `false`
+- **Precision** — verified / total. Кто точнее?
+- **Unique findings** — находки только одного отчёта (верифицировать каждую)
+- **Actionability** — указана строка кода, root cause, путь к исправлению? (`actionable` / `vague` / `no-fix`)
+- **Severity distribution** — weighted score: critical=3, high=2, medium=1, low=0.5
+- **Coverage map** — какие файлы прочитал каждый агент
 - **ROI** — overhead abra (tokens, cost) vs дельта качества
+
+### GT (опционально)
+
+Если в `meta.yml` заполнен `ground_truth_bugs`:
+- **Recall** — нашёл / не нашёл GT-баг
+- **Severity calibration** — совпала ли оценка severity с реальной
+
+GT — бонусная метрика, не основа вердикта. GT привязан к конкретному коммиту (`target_commit_sha`) и устаревает при эволюции кода.
 
 ---
 
