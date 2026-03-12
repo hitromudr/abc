@@ -2,7 +2,7 @@
 
 🇬🇧 **English** | [🇷🇺 Русский](README.md)
 
-[![Version](https://img.shields.io/badge/version-2.4.2-green.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.4.3-green.svg)](CHANGELOG.md)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Cognitive exoskeleton for LLMs — strict architecture instead of prompt engineering.**
@@ -68,7 +68,7 @@ Download [`03_АВТОНОМНЫЙ_ПАЙПЛАЙН.md`](abra/docs/02_ИНСТР
 |---|---|---|
 | [ChatGPT](https://chatgpt.com) | GPT-4o | Attach file → write your task |
 | [Claude.ai](https://claude.ai) | Sonnet | Attach file → write your task |
-| [Google AI Studio](https://aistudio.google.com) | Gemini 2.5 Pro (1M context) | System Instructions → paste file content → write your task |
+| [Google AI Studio](https://aistudio.google.com) | Gemini 3.1 Pro (1M context) | System Instructions → paste file content → write your task |
 | [Grok](https://grok.com) | Grok 3 | Attach file → write your task |
 | [Kimi](https://kimi.moonshot.cn) | Kimi (128K context) | Attach file → write your task |
 | [DeepSeek](https://chat.deepseek.com) | DeepSeek-R1 | Attach file → write your task |
