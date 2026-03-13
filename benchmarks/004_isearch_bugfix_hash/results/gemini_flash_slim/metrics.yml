@@ -1,0 +1,30 @@
+tag: gemini_flash_slim
+baseline:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 101812
+  input_tokens: 96857
+  output_tokens: 4955
+  wall_time_sec: 23.6
+  cost_usd: 0.0414446
+  objective:
+    patch_applied: true
+    tests_pass: true
+    regression_free: true
+    compiles: true
+    diff_size: 26
+    test_total: 2
+    test_failed: 0
+abra:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 104420
+  input_tokens: 104420
+  output_tokens: 0
+  wall_time_sec: 26.9
+  cost_usd: 0.031326
+  objective:
+    patch_applied: false
+    tests_pass: false
+    regression_free: false
+    compiles: false
+    diff_size: -1
+    patch_error: Не удалось извлечь патч из ответа модели

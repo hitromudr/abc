@@ -75,6 +75,7 @@ def _run_claude_code(model: str, system_prompt: str, user_prompt: str, timeout: 
         "--system-prompt", system_prompt,
         "--output-format", "json",
         "--max-turns", "1",
+        "--tools", "",
     ]
 
     # Убираем CLAUDECODE из env чтобы разрешить вложенный запуск
@@ -100,6 +101,20 @@ def _run_claude_code(model: str, system_prompt: str, user_prompt: str, timeout: 
 
     # Извлекаем текст ответа из JSON
     response_text = data.get("result", "")
+
+    # Fallback: если result пустой, извлекаем текст из messages
+    if not response_text:
+        for msg in reversed(data.get("messages", [])):
+            if msg.get("role") == "assistant":
+                content = msg.get("content", "")
+                if isinstance(content, list):
+                    # content может быть списком блоков [{type: "text", text: "..."}]
+                    texts = [b.get("text", "") for b in content if b.get("type") == "text"]
+                    response_text = "\n".join(t for t in texts if t)
+                elif isinstance(content, str):
+                    response_text = content
+                if response_text:
+                    break
 
     # Метрики из usage и modelUsage
     cost = data.get("total_cost_usd")

@@ -1,0 +1,31 @@
+tag: opus_slim
+baseline:
+  model: claude-code/opus
+  total_tokens: 99021
+  input_tokens: 98673
+  output_tokens: 348
+  wall_time_sec: 13.8
+  cost_usd: 0.0580455
+  objective:
+    patch_applied: true
+    tests_pass: true
+    regression_free: true
+    compiles: true
+    diff_size: 11
+    test_total: 2
+    test_failed: 0
+abra:
+  model: claude-code/opus
+  total_tokens: 1034
+  input_tokens: 2
+  output_tokens: 1032
+  wall_time_sec: 30.6
+  cost_usd: 0.7022725
+  objective:
+    patch_applied: true
+    tests_pass: true
+    regression_free: true
+    compiles: true
+    diff_size: 13
+    test_total: 2
+    test_failed: 0

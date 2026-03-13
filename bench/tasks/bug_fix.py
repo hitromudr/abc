@@ -28,7 +28,12 @@ class BugFixTask(TaskClass):
         failing_test = task_config.get("failing_test", "")
         test_info = f"\n\n## Падающий тест\n\n`{failing_test}`" if failing_test else ""
 
-        system_prompt = abra_kb
+        system_prompt = (
+            f"{abra_kb}\n\n"
+            "ВАЖНО: После анализа задачи ты ОБЯЗАН выдать исправление как unified diff "
+            "(```diff ... ```) или полные изменённые файлы. "
+            "Это задача на исправление бага — конечный результат ДОЛЖЕН содержать код-патч."
+        )
         user_prompt = (
             f"abra\n\n{brief}{test_info}"
             f"\n\n## Исходный код проекта\n\n{project_ctx}"

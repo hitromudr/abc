@@ -181,9 +181,11 @@ def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict, ma
     print(f"[2/3] Запускаю baseline: {model}")
     result = run_audit(model, system_prompt, user_prompt)
 
+    response_text = result["response"] or ""
     out_path = tagged_path(bench_dir, "baseline.md", tag)
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(result["response"])
+        f.write(response_text)
+    result["response"] = response_text
     print(f"[3/3] baseline.md сохранён ({result['total_tokens']} tokens, {result['wall_time_sec']}s, ${result['cost_usd'] or '?'})")
 
     # Объективные метрики (если task class поддерживает)
@@ -215,9 +217,11 @@ def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_co
     print(f"[3/4] Запускаю abra: {model}")
     result = run_audit(model, system_prompt, user_prompt)
 
+    response_text = result["response"] or ""
     out_path = tagged_path(bench_dir, "abra.md", tag)
     with open(out_path, "w", encoding="utf-8") as f:
-        f.write(result["response"])
+        f.write(response_text)
+    result["response"] = response_text
     print(f"[4/4] abra.md сохранён ({result['total_tokens']} tokens, {result['wall_time_sec']}s, ${result['cost_usd'] or '?'})")
 
     # Объективные метрики (если task class поддерживает)
