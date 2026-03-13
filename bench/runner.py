@@ -11,6 +11,7 @@ from .models import run_audit
 from .context import build_project_context
 from .verdict import run_verdict
 from .metrics import extract_json_from_text, update_meta_yml
+from .registry import get_task_class
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BENCHMARKS_DIR = os.path.join(REPO_ROOT, "benchmarks")
@@ -38,8 +39,6 @@ ABRA_KB_FULL_EXTRA = [
     "abra/docs/02_ИНСТРУМЕНТЫ/05_УНИВЕРСАЛЬНЫЙ_ОПТИМИЗАТОР.md",
     "abra/docs/02_ИНСТРУМЕНТЫ/07_ОРКЕСТРАЦИЯ_ЦИКЛА.md",
 ]
-
-BASELINE_SYSTEM = "Ты — Senior Software Engineer. Проведи глубокий аудит кодовой базы. Выдай структурированный отчёт с классификацией дефектов и оценкой критичности."
 
 # ---------------------------------------------------------------------------
 
@@ -147,7 +146,7 @@ def save_run_metrics(bench_dir: str, tag: str | None, phase: str, model: str, me
     else:
         data = {"tag": tag}
 
-    data[phase] = {
+    phase_data = {
         "model": model,
         "total_tokens": metrics["total_tokens"],
         "input_tokens": metrics["input_tokens"],
@@ -155,6 +154,9 @@ def save_run_metrics(bench_dir: str, tag: str | None, phase: str, model: str, me
         "wall_time_sec": metrics["wall_time_sec"],
         "cost_usd": metrics["cost_usd"],
     }
+    if "objective_metrics" in metrics:
+        phase_data["objective"] = metrics["objective_metrics"]
+    data[phase] = phase_data
     with open(metrics_path, "w", encoding="utf-8") as f:
         yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
 
@@ -165,6 +167,8 @@ def save_run_metrics(bench_dir: str, tag: str | None, phase: str, model: str, me
 
 def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict, max_context: int = 0, tag: str | None = None):
     """Фаза baseline: vanilla модель на BRIEF + код."""
+    task = get_task_class(meta)
+
     brief_path = os.path.join(bench_dir, "BRIEF.md")
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = f.read()
@@ -172,15 +176,21 @@ def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict, ma
     print(f"[1/3] Собираю контекст проекта: {project_path}")
     project_ctx = build_project_context(project_path, max_chars=max_context)
 
-    user_prompt = f"## Задание\n\n{brief}\n\n## Исходный код проекта\n\n{project_ctx}"
+    system_prompt, user_prompt = task.build_baseline_prompt(brief, project_ctx, meta)
 
-    print(f"[2/3] Запускаю baseline аудит: {model}")
-    result = run_audit(model, BASELINE_SYSTEM, user_prompt)
+    print(f"[2/3] Запускаю baseline: {model}")
+    result = run_audit(model, system_prompt, user_prompt)
 
     out_path = tagged_path(bench_dir, "baseline.md", tag)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(result["response"])
     print(f"[3/3] baseline.md сохранён ({result['total_tokens']} tokens, {result['wall_time_sec']}s, ${result['cost_usd'] or '?'})")
+
+    # Объективные метрики (если task class поддерживает)
+    obj = task.evaluate_objective(result["response"], meta, project_path)
+    if obj:
+        result["objective_metrics"] = obj
+        print(f"[obj] {obj}")
 
     save_run_metrics(bench_dir, tag, "baseline", model, result)
     return result
@@ -188,6 +198,8 @@ def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict, ma
 
 def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_context: int = 0, tag: str | None = None, full_kb: bool = False):
     """Фаза abra: модель с abra knowledge base."""
+    task = get_task_class(meta)
+
     brief_path = os.path.join(bench_dir, "BRIEF.md")
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = f.read()
@@ -198,10 +210,9 @@ def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_co
     print("[2/4] Загружаю abra knowledge base")
     abra_kb = load_abra_kb(full=full_kb)
 
-    system_prompt = abra_kb
-    user_prompt = f"abra\n\n{brief}\n\n## Исходный код проекта\n\n{project_ctx}"
+    system_prompt, user_prompt = task.build_abra_prompt(brief, project_ctx, abra_kb, meta)
 
-    print(f"[3/4] Запускаю abra аудит: {model}")
+    print(f"[3/4] Запускаю abra: {model}")
     result = run_audit(model, system_prompt, user_prompt)
 
     out_path = tagged_path(bench_dir, "abra.md", tag)
@@ -209,11 +220,17 @@ def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_co
         f.write(result["response"])
     print(f"[4/4] abra.md сохранён ({result['total_tokens']} tokens, {result['wall_time_sec']}s, ${result['cost_usd'] or '?'})")
 
+    # Объективные метрики (если task class поддерживает)
+    obj = task.evaluate_objective(result["response"], meta, project_path)
+    if obj:
+        result["objective_metrics"] = obj
+        print(f"[obj] {obj}")
+
     save_run_metrics(bench_dir, tag, "abra", model, result)
     return result
 
 
-def phase_verdict(bench_dir: str, verdict_model: str, project_path: str, max_context: int = 0, tag: str | None = None):
+def phase_verdict(bench_dir: str, verdict_model: str, project_path: str, max_context: int = 0, tag: str | None = None, n_judges: int = 1, style_blind: bool = False):
     """Фаза verdict: ослеплённое сравнение baseline vs abra."""
     baseline_path = tagged_path(bench_dir, "baseline.md", tag)
     abra_path = tagged_path(bench_dir, "abra.md", tag)
@@ -231,8 +248,15 @@ def phase_verdict(bench_dir: str, verdict_model: str, project_path: str, max_con
     print(f"[1/3] Собираю контекст проекта: {project_path}")
     project_ctx = build_project_context(project_path, max_chars=max_context)
 
+    if n_judges > 1:
+        return _multi_judge_verdict(
+            bench_dir, verdict_model, baseline_text, abra_text,
+            project_ctx, tag, n_judges, style_blind,
+        )
+
     print(f"[2/3] Запускаю verdict: {verdict_model}")
-    result = run_verdict(verdict_model, baseline_text, abra_text, project_ctx)
+    result = run_verdict(verdict_model, baseline_text, abra_text, project_ctx,
+                         style_blind=style_blind)
 
     out_path = tagged_path(bench_dir, "verdict.md", tag)
     with open(out_path, "w", encoding="utf-8") as f:
@@ -244,38 +268,9 @@ def phase_verdict(bench_dir: str, verdict_model: str, project_path: str, max_con
         verdict_json["_mapping"] = result["_mapping"]
 
         if tag:
-            # Сохраняем verdict в metrics.yml тега
-            results_dir = os.path.join(bench_dir, "results", tag)
-            metrics_path = os.path.join(results_dir, "metrics.yml")
-            if os.path.exists(metrics_path):
-                with open(metrics_path, "r", encoding="utf-8") as f:
-                    data = yaml.safe_load(f) or {}
-            else:
-                data = {"tag": tag}
-
-            data["verdict"] = {
-                "model": verdict_model,
-                "winner": verdict_json.get("winner"),
-                "reason": verdict_json.get("reason"),
-                "report_a": verdict_json.get("report_a", {}),
-                "report_b": verdict_json.get("report_b", {}),
-                "_mapping": verdict_json.get("_mapping", {}),
-            }
-            with open(metrics_path, "w", encoding="utf-8") as f:
-                yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+            _save_verdict_to_tag(bench_dir, tag, verdict_model, verdict_json)
         else:
-            meta_path = os.path.join(bench_dir, "meta.yml")
-            with open(meta_path, "r", encoding="utf-8") as f:
-                meta_data = yaml.safe_load(f)
-            baseline_res = meta_data.get("resources", {}).get("baseline")
-            abra_res = meta_data.get("resources", {}).get("abra")
-            update_meta_yml(meta_path, verdict_json, baseline_res, abra_res)
-
-            with open(meta_path, "r", encoding="utf-8") as f:
-                meta_data = yaml.safe_load(f)
-            meta_data.setdefault("environment", {})["verdict_model"] = verdict_model
-            with open(meta_path, "w", encoding="utf-8") as f:
-                yaml.dump(meta_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+            _save_verdict_to_meta(bench_dir, verdict_model, verdict_json)
 
         winner = verdict_json.get("winner", "?")
         reason = verdict_json.get("reason", "")
@@ -284,6 +279,144 @@ def phase_verdict(bench_dir: str, verdict_model: str, project_path: str, max_con
         print("[WARN] Не удалось извлечь JSON из verdict. Проверьте verdict.md вручную.")
 
     return result
+
+
+def _save_verdict_to_tag(bench_dir: str, tag: str, verdict_model: str, verdict_json: dict):
+    """Сохраняет verdict в results/tag/metrics.yml."""
+    results_dir = os.path.join(bench_dir, "results", tag)
+    metrics_path = os.path.join(results_dir, "metrics.yml")
+    if os.path.exists(metrics_path):
+        with open(metrics_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+    else:
+        data = {"tag": tag}
+
+    data["verdict"] = {
+        "model": verdict_model,
+        "winner": verdict_json.get("winner"),
+        "reason": verdict_json.get("reason"),
+        "report_a": verdict_json.get("report_a", {}),
+        "report_b": verdict_json.get("report_b", {}),
+        "_mapping": verdict_json.get("_mapping", {}),
+    }
+    with open(metrics_path, "w", encoding="utf-8") as f:
+        yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+
+def _save_verdict_to_meta(bench_dir: str, verdict_model: str, verdict_json: dict):
+    """Сохраняет verdict в meta.yml (для обратной совместимости без тега)."""
+    meta_path = os.path.join(bench_dir, "meta.yml")
+    with open(meta_path, "r", encoding="utf-8") as f:
+        meta_data = yaml.safe_load(f)
+    baseline_res = meta_data.get("resources", {}).get("baseline")
+    abra_res = meta_data.get("resources", {}).get("abra")
+    update_meta_yml(meta_path, verdict_json, baseline_res, abra_res)
+
+    with open(meta_path, "r", encoding="utf-8") as f:
+        meta_data = yaml.safe_load(f)
+    meta_data.setdefault("environment", {})["verdict_model"] = verdict_model
+    with open(meta_path, "w", encoding="utf-8") as f:
+        yaml.dump(meta_data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+
+def _multi_judge_verdict(
+    bench_dir: str, primary_model: str,
+    baseline_text: str, abra_text: str,
+    project_ctx: str, tag: str | None,
+    n_judges: int, style_blind: bool,
+) -> dict:
+    """Multi-judge verdict: N судей, majority vote."""
+    from .judges import select_judges, majority_verdict, cohens_kappa
+
+    judge_models = select_judges(primary_model, n=n_judges)
+    print(f"[2/3] Multi-judge verdict ({n_judges} судей): {judge_models}")
+
+    verdicts = []
+    all_responses = []
+
+    for i, judge_model in enumerate(judge_models, 1):
+        print(f"  [{i}/{n_judges}] Судья: {judge_model}")
+        try:
+            result = run_verdict(judge_model, baseline_text, abra_text, project_ctx,
+                                 style_blind=style_blind)
+            verdict_json = extract_json_from_text(result["response"])
+            if verdict_json:
+                verdict_json["_mapping"] = result["_mapping"]
+                # Деанонимизируем winner
+                mapping = result["_mapping"]
+                raw_winner = verdict_json.get("winner", "?")
+                if raw_winner in mapping:
+                    verdict_json["winner_resolved"] = mapping[raw_winner]
+                else:
+                    verdict_json["winner_resolved"] = raw_winner
+
+                verdicts.append({
+                    "judge_model": judge_model,
+                    "winner": verdict_json["winner_resolved"],
+                    "reason": verdict_json.get("reason", ""),
+                    "report_a": verdict_json.get("report_a", {}),
+                    "report_b": verdict_json.get("report_b", {}),
+                    "_mapping": mapping,
+                })
+                all_responses.append(result["response"])
+                print(f"    → {verdict_json['winner_resolved']}: {verdict_json.get('reason', '')[:80]}")
+            else:
+                print(f"    → [WARN] Не удалось извлечь JSON")
+        except Exception as e:
+            print(f"    → [ERROR] {e}")
+
+    if not verdicts:
+        print("[ERROR] Ни один судья не вернул валидный verdict")
+        return {"response": "", "_mapping": {}}
+
+    # Majority vote
+    consensus = majority_verdict(verdicts)
+    kappa = cohens_kappa(verdicts)
+
+    print(f"[3/3] Consensus: {consensus['winner']} (confidence={consensus['confidence']}, kappa={kappa})")
+
+    # Сохраняем все вердикты
+    out_path = tagged_path(bench_dir, "verdict.md", tag)
+    combined = "\n\n---\n\n".join(
+        f"## Judge {i+1}: {v['judge_model']}\n\n{resp}"
+        for i, (v, resp) in enumerate(zip(verdicts, all_responses))
+    )
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(combined)
+
+    # Сохраняем consensus в metrics
+    consensus_data = {
+        "model": "multi-judge",
+        "winner": consensus["winner"],
+        "confidence": consensus["confidence"],
+        "kappa": kappa,
+        "votes": consensus["votes"],
+        "n_judges": consensus["n_judges"],
+        "reason": "; ".join(v["reason"][:100] for v in verdicts),
+        # Используем данные первого вердикта для report_a/b (для совместимости)
+        "report_a": verdicts[0].get("report_a", {}),
+        "report_b": verdicts[0].get("report_b", {}),
+        "_mapping": verdicts[0].get("_mapping", {}),
+        "individual_verdicts": [
+            {"judge": v["judge_model"], "winner": v["winner"], "reason": v["reason"][:200]}
+            for v in verdicts
+        ],
+    }
+
+    if tag:
+        results_dir = os.path.join(bench_dir, "results", tag)
+        os.makedirs(results_dir, exist_ok=True)
+        metrics_path = os.path.join(results_dir, "metrics.yml")
+        if os.path.exists(metrics_path):
+            with open(metrics_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+        else:
+            data = {"tag": tag}
+        data["verdict"] = consensus_data
+        with open(metrics_path, "w", encoding="utf-8") as f:
+            yaml.dump(data, f, allow_unicode=True, default_flow_style=False, sort_keys=False)
+
+    return {"response": combined, "_mapping": verdicts[0].get("_mapping", {}), "consensus": consensus}
 
 
 # ---------------------------------------------------------------------------
@@ -302,6 +435,8 @@ def main():
     parser.add_argument("--max-context", type=int, default=0, help="Макс. символов контекста проекта (0=без лимита)")
     parser.add_argument("--tag", help="Тег прогона (для мульти-модельного сравнения). Результаты → results/<tag>/")
     parser.add_argument("--full-kb", action="store_true", help="Использовать полную базу знаний abra (16 файлов вместо 5)")
+    parser.add_argument("--n-judges", type=int, default=1, help="Количество судей для verdict (default: 1)")
+    parser.add_argument("--style-blind", action="store_true", help="Нормализовать отчёты перед verdict (style-blind)")
 
     args = parser.parse_args()
 
@@ -319,7 +454,8 @@ def main():
 
     if args.verdict:
         model = resolve_model(args.verdict_model or args.model, meta, "verdict")
-        phase_verdict(bench_dir, model, project_path, max_context=args.max_context, tag=args.tag)
+        phase_verdict(bench_dir, model, project_path, max_context=args.max_context,
+                      tag=args.tag, n_judges=args.n_judges, style_blind=args.style_blind)
     elif args.abra:
         model = resolve_model(args.model, meta, "abra")
         phase_abra(bench_dir, model, project_path, meta, max_context=args.max_context, tag=args.tag, full_kb=args.full_kb)

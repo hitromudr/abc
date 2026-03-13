@@ -65,7 +65,7 @@ def run_all(bench_id: str, project_override: str | None = None,
 
     # Генерируем таблицу
     results = _collect_existing_results(bench_dir)
-    table = generate_comparison_table(results, verdict_model)
+    table = generate_comparison_table(results, verdict_model, meta=meta)
     table_path = os.path.join(bench_dir, "results", "COMPARISON.md")
     with open(table_path, "w", encoding="utf-8") as f:
         f.write(table)
@@ -108,11 +108,118 @@ def _ws(findings: list, count_false: bool = False) -> float:
     )
 
 
-def generate_comparison_table(results: list[dict], verdict_model: str = VERDICT_MODEL) -> str:
+def generate_comparison_table(results: list[dict], verdict_model: str = VERDICT_MODEL,
+                              meta: dict | None = None) -> str:
+    """Генерирует сводную таблицу. Автоматически выбирает формат по task_class."""
+    task_class = (meta or {}).get("task_class", "code_audit")
+
+    if task_class in ("bug_fix", "refactor", "debug", "greenfield"):
+        return _generate_objective_table(results, meta or {})
+
+    return _generate_audit_table(results, verdict_model, meta)
+
+
+def _generate_objective_table(results: list[dict], meta: dict) -> str:
+    """Таблица для task classes с объективными метриками."""
+    task_class = meta.get("task_class", "bug_fix")
+    name = meta.get("name", task_class)
+
     lines = []
-    lines.append("# Bench 003: Multi-model comparison — abra vs baseline\n")
-    lines.append(f"> Verdict model: `{verdict_model}`")
-    lines.append(f"> Benchmark: isearch audit\n")
+    lines.append(f"# {name}: Multi-model comparison — abra vs baseline\n")
+    lines.append(f"> Task class: `{task_class}`\n")
+
+    # Главная таблица: объективные метрики
+    lines.append("## Объективные метрики\n")
+    lines.append("| # | Модель | KB | Phase | patch | tests | regression | compiles | diff |")
+    lines.append("|---|--------|-------|-------|:-----:|:-----:|:----------:|:--------:|-----:|")
+
+    for i, r in enumerate(results, 1):
+        tag = r.get("tag", "?")
+        if "_error" in r:
+            lines.append(f"| {i} | {tag} | — | — | — | — | — | — | — |")
+            continue
+
+        kb = "full" if "_full" in tag else "slim"
+        model_name = tag.replace("_full", "").replace("_slim", "")
+
+        for phase in ["baseline", "abra"]:
+            phase_data = r.get(phase, {})
+            obj = phase_data.get("objective", {})
+            if not obj:
+                continue
+
+            patch = "✓" if obj.get("patch_applied") else "✗"
+            tests = "✓" if obj.get("tests_pass") or obj.get("fix_tests_pass") else "✗"
+            regr = "✓" if obj.get("regression_free") else "✗"
+            comp = "✓" if obj.get("compiles") else "✗"
+            diff = obj.get("diff_size", "—")
+
+            lines.append(f"| {i} | {model_name} | {kb} | {phase} | {patch} | {tests} | {regr} | {comp} | {diff} |")
+
+    # Ресурсы
+    lines.append("\n## Ресурсы\n")
+    lines.append("| Модель | KB | B tokens | A tokens | Overhead | B cost | A cost |")
+    lines.append("|--------|----|---------:|---------:|---------:|-------:|-------:|")
+
+    for r in results:
+        tag = r.get("tag", "?")
+        if "_error" in r:
+            continue
+
+        bl = r.get("baseline", {})
+        ab = r.get("abra", {})
+        kb = "full" if "_full" in tag else "slim"
+        model_name = tag.replace("_full", "").replace("_slim", "")
+
+        bl_tok = bl.get("total_tokens", 0) or 0
+        ab_tok = ab.get("total_tokens", 0) or 0
+        overhead = f"+{round((ab_tok - bl_tok) / bl_tok * 100)}%" if bl_tok > 0 else "—"
+        bl_cost = f"${bl.get('cost_usd', 0):.3f}" if bl.get("cost_usd") else "—"
+        ab_cost = f"${ab.get('cost_usd', 0):.3f}" if ab.get("cost_usd") else "—"
+
+        lines.append(f"| {model_name} | {kb} | {bl_tok:,} | {ab_tok:,} | {overhead} | {bl_cost} | {ab_cost} |")
+
+    # Сводка
+    wins = {"abra": 0, "baseline": 0, "tie": 0}
+    for r in results:
+        if "_error" in r:
+            continue
+        bl_obj = r.get("baseline", {}).get("objective", {})
+        ab_obj = r.get("abra", {}).get("objective", {})
+
+        bl_pass = bl_obj.get("tests_pass") or bl_obj.get("fix_tests_pass", False)
+        ab_pass = ab_obj.get("tests_pass") or ab_obj.get("fix_tests_pass", False)
+
+        if bl_pass and not ab_pass:
+            wins["baseline"] += 1
+        elif ab_pass and not bl_pass:
+            wins["abra"] += 1
+        elif bl_pass and ab_pass:
+            # Оба прошли — сравниваем diff size (меньше = лучше)
+            bl_diff = bl_obj.get("diff_size", 999)
+            ab_diff = ab_obj.get("diff_size", 999)
+            if bl_diff < ab_diff:
+                wins["baseline"] += 1
+            elif ab_diff < bl_diff:
+                wins["abra"] += 1
+            else:
+                wins["tie"] += 1
+        else:
+            wins["tie"] += 1
+
+    lines.append(f"\n## Итого: abra {wins['abra']} / baseline {wins['baseline']} / tie {wins['tie']}\n")
+
+    return "\n".join(lines)
+
+
+def _generate_audit_table(results: list[dict], verdict_model: str = VERDICT_MODEL,
+                          meta: dict | None = None) -> str:
+    """Оригинальная таблица для code_audit."""
+    name = (meta or {}).get("name", "Multi-model comparison")
+
+    lines = []
+    lines.append(f"# {name}: Multi-model comparison — abra vs baseline\n")
+    lines.append(f"> Verdict model: `{verdict_model}`\n")
 
     # ------- Главная таблица -------
     lines.append("## Качество аудита\n")
@@ -266,8 +373,9 @@ def main():
 
     if args.table_only:
         bench_dir = find_bench_dir(args.bench_id)
+        meta = load_meta(bench_dir)
         results = _collect_existing_results(bench_dir)
-        table = generate_comparison_table(results, args.verdict_model)
+        table = generate_comparison_table(results, args.verdict_model, meta=meta)
         table_path = os.path.join(bench_dir, "results", "COMPARISON.md")
         with open(table_path, "w", encoding="utf-8") as f:
             f.write(table)

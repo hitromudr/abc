@@ -1,0 +1,33 @@
+benchmark_id: '004'
+name: isearch_bugfix_hash
+date: '2026-03-13'
+target_repo: isearch
+target_repo_path: ~/work/isearch
+target_commit_sha: MUST_SET_BEFORE_RUN
+
+description: >
+  Bug fix: заменить недетерминистичный hash() на стабильную хеш-функцию
+  для генерации point ID в vector_store.py.
+
+task_class: bug_fix
+
+task_config:
+  test_cmd: "python -m pytest tests/unit/test_id_determinism.py -v"
+  build_cmd: "python -m py_compile src/vector_store.py"
+  failing_test: "tests/unit/test_id_determinism.py::test_id_determinism_across_seeds"
+  full_test_cmd: "python -m pytest tests/unit/test_id_determinism.py tests/unit/test_graph_analyzer.py -v"
+
+environment:
+  abra_version: 3.0-slim
+
+ground_truth_bugs:
+  - id: GT-3
+    name: Nondeterministic hash IDs
+    severity: critical
+    status: ACTIVE
+    description: >
+      hash() в Python рандомизирован (PYTHONHASHSEED). ID точек меняются
+      между перезапусками → дубли при reindex, рост коллекции.
+    layer: infrastructure
+    file: src/vector_store.py
+    line: 90

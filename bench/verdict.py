@@ -3,6 +3,7 @@
 import random
 
 from .models import run_audit
+from .normalizer import normalize_report
 
 VERDICT_SYSTEM = "Ты — ослеплённый арбитр качества аудитов безопасности и архитектуры."
 
@@ -71,8 +72,18 @@ def run_verdict(
     abra_text: str,
     project_context: str,
     timeout: int = 600,
+    style_blind: bool = False,
 ) -> dict:
-    """Запускает ослеплённый verdict. Возвращает {response, ...metrics}."""
+    """Запускает ослеплённый verdict. Возвращает {response, ...metrics}.
+
+    Args:
+        style_blind: если True, нормализует отчёты перед отправкой судье
+                     (снимает markdown, abra-специфичные маркеры).
+    """
+    if style_blind:
+        baseline_text = normalize_report(baseline_text)
+        abra_text = normalize_report(abra_text)
+
     # Рандомное ослепление
     if random.random() < 0.5:
         report_a, report_b = baseline_text, abra_text
