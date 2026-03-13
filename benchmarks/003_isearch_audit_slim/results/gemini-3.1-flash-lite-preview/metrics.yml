@@ -1,0 +1,90 @@
+tag: gemini-3.1-flash-lite-preview
+baseline:
+  model: gemini/gemini-3.1-flash-lite-preview
+  total_tokens: 96723
+  input_tokens: 95712
+  output_tokens: 1011
+  wall_time_sec: 6.6
+  cost_usd: 0.0254445
+abra:
+  model: gemini/gemini-3.1-flash-lite-preview
+  total_tokens: 104065
+  input_tokens: 102663
+  output_tokens: 1402
+  wall_time_sec: 8.2
+  cost_usd: 0.02776875
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: Отчёт B («abra») выигрывает за счёт более высокой взвешенной оценки (11
+    против 9) и обнаружения уникальной критической проблемы (отсутствие индекса для
+    `file_type`), которая напрямую влияет на производительность и корректность базовой
+    функции поиска с фильтрами. Оба отчёта очень сильны, демонстрируют высокую точность
+    и конкретику.
+  report_a:
+    findings:
+    - id: D-01
+      title: Недетерминированные ID
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: D-02
+      title: Race Condition при индексации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: D-03
+      title: Path Traversal
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: D-04
+      title: 'KMeans: потеря семантики'
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: D-05
+      title: Scroll efficiency в _get_indexed_state
+      status: verified
+      actionability: actionable
+      severity: medium
+    total: 5
+    verified: 5
+    plausible: 0
+    'false': 0
+    unique_findings: 5
+  report_b:
+    findings:
+    - id: '1'
+      title: Недетерминированные ID
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: '2'
+      title: Отсутствие индекса для фильтрации file_type
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: '3'
+      title: Нестабильная демонизация
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: '4'
+      title: Ошибка логики бустинга ранжирования
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: '5'
+      title: 'KMeans: ресурсоемкость'
+      status: verified
+      actionability: actionable
+      severity: medium
+    total: 5
+    verified: 5
+    plausible: 0
+    'false': 0
+    unique_findings: 5
+  _mapping:
+    a: baseline
+    b: abra

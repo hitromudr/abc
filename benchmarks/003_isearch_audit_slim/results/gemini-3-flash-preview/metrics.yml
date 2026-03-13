@@ -1,0 +1,110 @@
+tag: gemini-3-flash-preview
+baseline:
+  model: gemini/gemini-3-flash-preview
+  total_tokens: 99178
+  input_tokens: 95712
+  output_tokens: 3466
+  wall_time_sec: 26.0
+  cost_usd: 0.058254
+abra:
+  model: gemini/gemini-3-flash-preview
+  total_tokens: 107026
+  input_tokens: 102663
+  output_tokens: 4363
+  wall_time_sec: 28.9
+  cost_usd: 0.06442049999999999
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: Отчёт B (baseline) продемонстрировал более глубокий и широкий охват проблем.
+    Он выявил 5 уникальных проблем по сравнению с 1 уникальной проблемой в Отчёте
+    A, включая важные дефекты производительности/масштабируемости и операционной надежности.
+    Хотя оба отчёта корректно определили критические проблемы, Отчёт B предлагает
+    более всестороннюю картину рисков и архитектурных ограничений проекта.
+  report_a:
+    findings:
+    - id: A1
+      title: Недетерминированные ID
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A2
+      title: Path Traversal в API
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A3
+      title: OOM при кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A4
+      title: Состояние-фантом (TASK_STATUS)
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A5
+      title: Коллизии abs(hash())
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 5
+    verified: 5
+    plausible: 0
+    'false': 0
+    unique_findings: 1
+  report_b:
+    findings:
+    - id: B1
+      title: Недетерминированные ID векторов
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Ненадежный сбор состояния индекса
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B3
+      title: Отсутствие механизмов синхронизации (Race Conditions)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Злоупотребление FastAPI BackgroundTasks для ML
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B5
+      title: Хранение состояния задач в RAM
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B6
+      title: Лимиты Qdrant в запросах на удаление
+      status: plausible
+      actionability: actionable
+      severity: high
+    - id: B7
+      title: Ненадежная демонизация в manage.py
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B8
+      title: Потенциальный Path Traversal
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B9
+      title: Ошибочное ранжирование при бустинге
+      status: plausible
+      actionability: vague
+      severity: low
+    total: 9
+    verified: 7
+    plausible: 2
+    'false': 0
+    unique_findings: 5
+  _mapping:
+    a: abra
+    b: baseline

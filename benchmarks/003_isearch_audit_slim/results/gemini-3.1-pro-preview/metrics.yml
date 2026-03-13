@@ -1,0 +1,106 @@
+tag: gemini-3.1-pro-preview
+baseline:
+  model: gemini/gemini-3.1-pro-preview
+  total_tokens: 103003
+  input_tokens: 95712
+  output_tokens: 7291
+  wall_time_sec: 70.0
+  cost_usd: 0.278916
+abra:
+  model: gemini/gemini-3.1-pro-preview
+  total_tokens: 167424
+  input_tokens: 102663
+  output_tokens: 64761
+  wall_time_sec: 506.6
+  cost_usd: 0.982458
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: tie
+  reason: Оба отчёта имеют высокое качество, без галлюцинаций и с чёткими рекомендациями.
+    Report A (baseline) нашёл на одно верифицированное замечание больше и одно критическое,
+    но Report B (abra) предоставил более структурированный протокол, что облегчает
+    последующую работу. Из-за крайне небольшого различия в объёме и качестве находок,
+    объявляю ничью.
+  report_a:
+    findings:
+    - id: A1
+      title: 'Инфраструктура: Недетерминированная генерация ID векторов (GT-3)'
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A2
+      title: 'Безопасность: Directory/Path Traversal (CWE-22)'
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A3
+      title: 'Инфраструктура: Состояние гонки (Race Condition) при фоновой индексации
+        (GT-4)'
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A4
+      title: 'Инфраструктура: Игнорирование частичных отказов батчей в Qdrant'
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A5
+      title: 'Логика: Падение поиска из-за рассинхронизации исходников (IndexError)'
+      status: plausible
+      actionability: actionable
+      severity: low
+    - id: A6
+      title: 'Архитектура: In-Memory стейт задач TASK_STATUS не масштабируется'
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A7
+      title: 'Технический долг: Конфликтующие стратегии чанкирования в index.py'
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 7
+    verified: 6
+    plausible: 1
+    'false': 0
+    unique_findings: 3
+  report_b:
+    findings:
+    - id: B1
+      title: Path Traversal / Arbitrary File Read
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Недетерминированность State (GT-3)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B3
+      title: Гонка данных (Race Condition) (GT-4)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Утечка памяти (OOM) и потеря данных в /clusters
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B5
+      title: Деградация скорости поиска (Гомеостаз)
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B6
+      title: Мёртвый код (Энтропия)
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 6
+    verified: 6
+    plausible: 0
+    'false': 0
+    unique_findings: 2
+  _mapping:
+    a: baseline
+    b: abra

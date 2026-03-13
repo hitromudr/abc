@@ -1,0 +1,195 @@
+tag: deepseek-chat
+baseline:
+  model: deepseek/deepseek-chat
+  total_tokens: 84529
+  input_tokens: 82218
+  output_tokens: 2311
+  wall_time_sec: 72.2
+  cost_usd: 0.003283308
+abra:
+  model: deepseek/deepseek-chat
+  total_tokens: 93695
+  input_tokens: 89599
+  output_tokens: 4096
+  wall_time_sec: 140.1
+  cost_usd: 0.02680804
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: Отчёт B (baseline) имеет больше верифицированных находок (11 против 9),
+    меньше галлюцинаций (2 против 3) и более высокую взвешенную оценку (19.5 против
+    17). Он выявил два различных критических Path Traversal, а также критическую проблему
+    асинхронности, что в совокупности делает его более качественным аудитом, несмотря
+    на хороший методологический подход отчёта A.
+  report_a:
+    findings:
+    - id: A1
+      title: Path Traversal в API графа
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A2
+      title: Недостаточная валидация имени проекта
+      status: plausible
+      actionability: vague
+      severity: low
+    - id: A3
+      title: Race condition при параллельной индексации
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A4
+      title: Недетерминистичные ID точек в Qdrant
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A5
+      title: Молчаливое игнорирование ошибок Qdrant
+      status: plausible
+      actionability: actionable
+      severity: high
+    - id: A6
+      title: Отсутствие timeout на операции Qdrant
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: A7
+      title: Утечка памяти при batch processing
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A8
+      title: Нет graceful degradation при недоступности модели
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A9
+      title: Отсутствие аутентификации/авторизации API
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A10
+      title: Неоптимальное chunking файлов
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A11
+      title: Жёсткая привязка к расширениям файлов
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A12
+      title: Отсутствие метрик качества поиска
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A13
+      title: CLI не проверяет доступность API
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: A14
+      title: Тесты не покрывают edge cases
+      status: plausible
+      actionability: actionable
+      severity: low
+    - id: A15
+      title: Docker-compose без персистентности
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: A16
+      title: Отсутствие лимитов на размер запросов
+      status: plausible
+      actionability: actionable
+      severity: low
+    total: 16
+    verified: 9
+    plausible: 4
+    'false': 3
+    unique_findings: 7
+  report_b:
+    findings:
+    - id: B1
+      title: Несогласованность конфигурации Qdrant
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: B2
+      title: Смешение ответственности в src/main.py
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B3
+      title: Отсутствие стратегии обработки ошибок
+      status: plausible
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Уязвимость Path Traversal в поиске
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B5
+      title: Небезопасная генерация ID для Qdrant
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B6
+      title: Гонка данных при индексации
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B7
+      title: Проблемы с обработкой Unicode
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B8
+      title: Утечки памяти в обработке больших проектов
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B9
+      title: Отсутствие мониторинга и метрик
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B10
+      title: Проблемы с управлением зависимостями
+      status: plausible
+      actionability: actionable
+      severity: low
+    - id: B11
+      title: Несогласованность фильтрации по scope
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: B12
+      title: Отсутствие валидации входных данных
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B13
+      title: Проблемы с асинхронностью
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B14
+      title: Хрупкие интеграционные тесты
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B15
+      title: Неполное покрытие кода
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 15
+    verified: 11
+    plausible: 2
+    'false': 2
+    unique_findings: 8
+  _mapping:
+    a: abra
+    b: baseline

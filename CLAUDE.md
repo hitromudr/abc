@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **abra** — Архитектор. Когнитивный конвейер для анализа сложных задач и генерации Концептуальных Протоколов.
 - **cadabra** — Исполнитель (Прораб). Получает машиночитаемый контракт (`EXECUTION_STATE.md`) от abra и автономно выполняет шаги.
 
-Нет кода, сборки, тестов или линтера. Git используется только для версионирования документации. Язык — русский. Технические термины на языке оригинала.
+Язык — русский. Технические термины на языке оригинала.
 
 ## Структура
 
@@ -27,6 +27,7 @@ abracadabra/
 │   └── docs/
 │       └── 02_ФОРМАТ_ERROR_LOG.md ← спецификация обратного канала
 ├── benchmarks/                 ← Eval Suite: A/B-тесты abra vs vanilla LLM
+├── bench/                      ← Bench Runner: мульти-модельный раннер (Python + LiteLLM)
 ├── .rules                      ← симлинк → abra/core_rules.md (для Zed)
 ├── .cursorrules                ← симлинк → abra/core_rules.md (для Cursor)
 ├── CLAUDE.md                   ← этот файл
@@ -52,3 +53,14 @@ abracadabra/
 Выходной документ по шаблону `abra/docs/02_ИНСТРУМЕНТЫ/02_ШАБЛОН_ИТОГОВОГО_ПРОТОКОЛА.md`: Топология, Инварианты, Точка опоры, Векторы энтропии, Алгоритм стабилизации, Метрика истины, Эвристики, Резолюция (+ секция 8.1: генерация EXECUTION_STATE для cadabra), Верификация.
 
 Контракт исполнителя: `abra/docs/02_ИНСТРУМЕНТЫ/06_ШАБЛОН_EXECUTION_STATE.md` — машиночитаемый артефакт с METADATA, CONTEXT, KILL BOX, DAG, ERROR_LOG, COMPLETION_PROOF + правила оркестрации.
+
+## Bench Runner
+
+`bench/` — Python-раннер для мульти-модельных A/B тестов через LiteLLM. Зависимости: `litellm`, `pyyaml`.
+
+```bash
+python -m bench.runner NNN --model MODEL [--abra] [--full-kb] [--verdict] [--tag TAG]
+python -m bench.compare NNN [--full-kb] [--table-only]
+```
+
+Результаты в `benchmarks/NNN_*/results/<tag>/`. Сводка — `COMPARISON.md`.

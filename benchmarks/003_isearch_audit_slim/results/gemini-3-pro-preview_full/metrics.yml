@@ -1,0 +1,130 @@
+tag: gemini-3-pro-preview_full
+baseline:
+  model: gemini/gemini-3-pro-preview
+  total_tokens: 103571
+  input_tokens: 95712
+  output_tokens: 7859
+  wall_time_sec: 72.4
+  cost_usd: 0.11620620000000001
+abra:
+  model: gemini/gemini-3-pro-preview
+  total_tokens: 132488
+  input_tokens: 119674
+  output_tokens: 12814
+  wall_time_sec: 132.2
+  cost_usd: 0.393116
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: a
+  reason: Отчёт 'abra' превосходит 'baseline' по количеству верифицированных уникальных
+    находок (7 против 4) и отсутствию ложных срабатываний. Оба отчёта обнаружили критические
+    уязвимости (Path Traversal и недетерминированные ID), но 'abra' показал более
+    глубокое и комплексное понимание системных проблем, а также более широкое покрытие
+    неочевидных багов, таких как коллизии имён коллекций и неработающий параметр reindex.
+  report_a:
+    findings:
+    - id: A1
+      title: Path Traversal (Arbitrary File Read/Write)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A2
+      title: Коллизия коллекций
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A3
+      title: Недетерминированность ID (Silent batch duplicates / Loss of Data)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A4
+      title: Пропуск параметра reindex
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A5
+      title: Утечка памяти (Memory Leak) (TASK_STATUS)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A6
+      title: Race Condition (Гонка данных)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A7
+      title: Limit 10,000 в Кластеризации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A8
+      title: Падение gRPC Payload
+      status: plausible
+      actionability: actionable
+      severity: medium
+    - id: A9
+      title: Мертвый код (src/index.py recreate_collection call)
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A10
+      title: Qdrant prefer_grpc vs docker-compose.yml comment
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 10
+    verified: 9
+    plausible: 1
+    'false': 0
+    unique_findings: 7
+  report_b:
+    findings:
+    - id: B1
+      title: Path Traversal (Уязвимость безопасности)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Недетерминированная генерация ID векторов (Потеря данных / Дубликация)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B3
+      title: Out of Memory (OOM) при индексации крупных проектов
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Data Race в фоновых задачах (Concurrency)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B5
+      title: DoS-вектор в алгоритме кластеризации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B6
+      title: Логическая ошибка в отображении прогресса CLI
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: B7
+      title: Рассинхронизация форматов контрактов (Мертвый код)
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B8
+      title: Микс локальных и облачных конфигураций Qdrant
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 8
+    verified: 7
+    plausible: 0
+    'false': 1
+    unique_findings: 4
+  _mapping:
+    a: abra
+    b: baseline

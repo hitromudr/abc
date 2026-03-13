@@ -1,0 +1,115 @@
+tag: gemini-3-flash-preview_full
+baseline:
+  model: gemini/gemini-3-flash-preview
+  total_tokens: 98857
+  input_tokens: 95712
+  output_tokens: 3145
+  wall_time_sec: 24.7
+  cost_usd: 0.057290999999999995
+abra:
+  model: gemini/gemini-3-flash-preview
+  total_tokens: 123126
+  input_tokens: 119674
+  output_tokens: 3452
+  wall_time_sec: 27.2
+  cost_usd: 0.07019299999999999
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: 'Отчёт B (''abra'') демонстрирует более высокое качество: он не содержит
+    ложных срабатываний (в отличие от 2 в Отчёте A) и выявляет больше уникальных,
+    верифицированных и правдоподобных проблем (8 против 5). В частности, Отчёт B обнаружил
+    важную проблему Race Condition (GT-4), которую Отчёт A пропустил.'
+  report_a:
+    findings:
+    - id: A1
+      title: Недетерминированные ID и нарушение идемпотентности индексации
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A2
+      title: Уязвимость к обходу директорий (Path Traversal)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A3
+      title: Потеря состояния задач (In-Memory Task Storage)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A4
+      title: Конфликт логики батчинга при эмбеддинге
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: A5
+      title: Ошибка в фильтрации Scope (Mismatched Keys)
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: A6
+      title: Блокирующий запуск (FastAPI Lifespan)
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A7
+      title: Риск порчи коллекции при несовпадении размерности
+      status: verified
+      actionability: actionable
+      severity: medium
+    total: 7
+    verified: 5
+    plausible: 0
+    'false': 2
+    unique_findings: 5
+  report_b:
+    findings:
+    - id: B1
+      title: Недетерминированные ID
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Path Traversal (Чтение файлов)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B3
+      title: OOM при кластеризации
+      status: plausible
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Task Persistence (Потеря состояния задач)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B5
+      title: Scalability (Index Sync) (Проблемы масштабируемости при синхронизации
+        индекса)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B6
+      title: Race Condition (Состояние гонки)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B7
+      title: Manage.py (Хрупкий механизм демонизации)
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B8
+      title: Environment (Небезопасное значение по умолчанию для PROJECTS_BASE_DIR)
+      status: plausible
+      actionability: actionable
+      severity: low
+    total: 8
+    verified: 6
+    plausible: 2
+    'false': 0
+    unique_findings: 8
+  _mapping:
+    a: baseline
+    b: abra

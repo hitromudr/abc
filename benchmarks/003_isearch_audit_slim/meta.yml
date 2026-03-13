@@ -1,107 +1,89 @@
-benchmark_id: "003"
-name: "isearch_audit_slim"
-date: "2026-03-12"
-target_repo: "isearch"
-target_commit_sha: "49b9441be934237d977352031e3e1dc48a144fe4"
+benchmark_id: '003'
+name: isearch_audit_slim
+date: '2026-03-12'
+target_repo: isearch
+target_commit_sha: MUST_SET_BEFORE_RUN
+description: 'Аудит isearch на слимленной версии abracadabra (v3.0-slim). Цель: проверить,
+  что радикальное сокращение базы знаний не ухудшает качество.
 
-description: >
-  Аудит isearch на слимленной версии abracadabra (v3.0-slim).
-  Цель: проверить, что радикальное сокращение базы знаний не ухудшает качество.
-
+  '
 environment:
-  baseline_model: "Claude Opus 4.6"
-  abra_model: "Claude Opus 4.6"
-  verdict_model: "Claude Opus 4.6"
-  abra_version: "3.0-slim"
-
-# Ground Truth (ОПЦИОНАЛЬНО — бонусная метрика, не основа вердикта).
-# ВНИМАНИЕ: GT-1 и GT-2 исправлены в текущем коде isearch.
-# GT валиден только для коммита из bench 001.
+  baseline_model: gemini/gemini-2.5-flash
+  abra_model: gemini/gemini-2.5-flash
+  verdict_model: gemini/gemini-2.5-flash
+  abra_version: 3.0-slim
 ground_truth_bugs:
-  - id: GT-1
-    name: "E5 prefix mismatch"
-    severity: critical
-    status: STALE  # исправлен: модель сменена на MiniLM
-    description: >
-      Модель E5 требует префикс 'query:'/'passage:'.
-      Код не использует — деградация ~30%.
-    layer: product
+- id: GT-1
+  name: E5 prefix mismatch
+  severity: critical
+  status: STALE
+  description: 'Модель E5 требует префикс ''query:''/''passage:''. Код не использует
+    — деградация ~30%.
 
-  - id: GT-2
-    name: "Scope file_type filter mismatch"
-    severity: critical
-    status: STALE  # исправлен: chunker.py удалён
-    description: >
-      file_type "doc" vs "docs" — scope=docs сломан.
-    layer: product
+    '
+  layer: product
+- id: GT-2
+  name: Scope file_type filter mismatch
+  severity: critical
+  status: STALE
+  description: 'file_type "doc" vs "docs" — scope=docs сломан.
 
-  - id: GT-3
-    name: "Silent batch failures"
-    severity: high
-    status: ACTIVE
-    description: >
-      hash()-based ID недетерминистичен (PYTHONHASHSEED).
-      Дубли при reindex. abs() удваивает коллизии.
-    layer: infrastructure
+    '
+  layer: product
+- id: GT-3
+  name: Silent batch failures
+  severity: high
+  status: ACTIVE
+  description: 'hash()-based ID недетерминистичен (PYTHONHASHSEED). Дубли при reindex.
+    abs() удваивает коллизии.
 
-  - id: GT-4
-    name: "Concurrency race condition"
-    severity: high
-    status: ACTIVE
-    description: >
-      Гонка данных при параллельной индексации.
-      Нет per-project блокировок.
-    layer: infrastructure
+    '
+  layer: infrastructure
+- id: GT-4
+  name: Concurrency race condition
+  severity: high
+  status: ACTIVE
+  description: 'Гонка данных при параллельной индексации. Нет per-project блокировок.
 
-# Качество (GT-free — основные метрики)
+    '
+  layer: infrastructure
 quality:
   baseline:
-    total_findings: 23
-    verified: 19
-    plausible: 4
+    total_findings: 10
+    verified: 10
+    plausible: 0
     false_positives: 0
-    precision: 0.826        # 19/23 strict
-    actionable: 18          # 78%
-    unique_findings: 7      # verified unique
-    weighted_score: 30      # 3×3 + 5×2 + 7×1 + 8×0.5
-    files_read: 16
+    precision: 1.0
+    actionable: 10
+    unique_findings: 10
+    weighted_score: 13.5
   abra:
-    total_findings: 16
-    verified: 15
+    total_findings: 13
+    verified: 12
     plausible: 1
     false_positives: 0
-    precision: 0.9375       # 15/16 strict
-    actionable: 13          # 81%
-    unique_findings: 2      # verified unique
-    weighted_score: 26      # 3×3 + 5×2 + 6×1 + 2×0.5
-    files_read: 14
-
-# GT recall (только ACTIVE баги)
+    precision: 0.92
+    actionable: 13
+    unique_findings: 13
+    weighted_score: 17.5
 gt_recall:
-  baseline: "2/2"    # GT-3, GT-4
-  abra: "2/2"        # GT-3, GT-4
-
-# Ресурсы (данные недоступны в полном объёме)
+  baseline: null
+  abra: null
 resources:
   baseline:
-    total_tokens: null
-    wall_time_min: null
-    cost_usd: null
+    total_tokens: 104068
+    wall_time_min: 0.0
+    cost_usd: 0.0496036
   abra:
-    init_tokens: null
-    total_tokens: null
-    wall_time_min: null
-    cost_usd: null
+    total_tokens: 118976
+    wall_time_min: 0.0
+    cost_usd: 0.07158139999999999
   overhead:
-    extra_tokens_pct: null
-    extra_time_pct: null
-
+    extra_tokens_pct: 14.3
 verdict:
-  winner: "baseline"
-  reason: >
-    Baseline: 23 findings (19 verified), 7 verified unique, weighted=30, coverage=16 files.
-    Abra: 16 findings (15 verified), 2 verified unique, weighted=26, coverage=14 files.
-    Baseline wins on breadth (+43% findings), unique insights (QDRANT_URL mode confusion,
-    index.py dead code), and LOW-severity depth (8 vs 2). Abra wins on precision (93.75%
-    vs 82.6%) and severity calibration (path traversal correctly CRITICAL). Both have 0
-    false positives and 2/2 GT recall. Narrow baseline victory — breadth > precision for audit.
+  winner: a
+  reason: Отчёт 'abra' обнаружил больше уникальных и критически важных уязвимостей,
+    включая более прямой и эксплуатируемый Path Traversal (A1) и ключевые архитектурные
+    проблемы масштабируемости (A4, A9). Его структурированный подход и глубокий анализ
+    архитектурных рисков обеспечивают более высокое общее качество аудита. Оба отчёта
+    корректно определили Ground Truth баги (GT-3, GT-4).

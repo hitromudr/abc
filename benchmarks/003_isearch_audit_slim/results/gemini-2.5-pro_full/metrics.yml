@@ -1,0 +1,133 @@
+tag: gemini-2.5-pro_full
+baseline:
+  model: gemini/gemini-2.5-pro
+  total_tokens: 101605
+  input_tokens: 95712
+  output_tokens: 5893
+  wall_time_sec: 55.4
+  cost_usd: 0.17857
+abra:
+  model: gemini/gemini-2.5-pro
+  total_tokens: 133805
+  input_tokens: 119674
+  output_tokens: 14131
+  wall_time_sec: 127.5
+  cost_usd: 0.29090250000000006
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: 'Report B (Baseline) превосходит Report A (Abra) по большинству метрик:
+    он выявил значительно больше общих находок (11 против 7), больше верифицированных
+    (10 против 7) и уникальных (8 против 4). Это привело к более высокому взвешенному
+    баллу (17 против 12.5). Оба отчёта показали отличную точность (0 галлюцинаций)
+    и полный охват активных Ground Truth багов. Однако Report B предоставляет более
+    широкий спектр actionable-рекомендаций, охватывающих как критические уязвимости,
+    так и аспекты качества кода и удобства разработки, что делает его более ценным
+    для всестороннего аудита.'
+  report_a:
+    findings:
+    - id: A1
+      title: Недетерминистичная генерация ID и тихая коррупция данных
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A2
+      title: Уязвимость Path Traversal
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A3
+      title: Риск отказа в обслуживании (DoS) через API кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A4
+      title: Хрупкое управление состоянием процессов
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A5
+      title: Деструктивная миграция схемы
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A6
+      title: Тихий пропуск файлов при ошибках индексации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A7
+      title: Небезопасное использование `shell=True`
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 7
+    verified: 7
+    plausible: 0
+    'false': 0
+    unique_findings: 4
+  report_b:
+    findings:
+    - id: B1
+      title: Уязвимость Path Traversal при выборе проекта
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Отсутствие аутентификации на деструктивных операциях
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B3
+      title: Недетерминированные ID для векторов в Qdrant
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B4
+      title: Состояние гонки (Race Condition) при параллельной индексации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B5
+      title: Потеря состояния задач при перезапуске сервиса
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B6
+      title: Потенциальная тихая потеря данных при кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B7
+      title: Неоднозначность конфигурации Qdrant (URL vs. Local Path)
+      status: plausible
+      actionability: actionable
+      severity: medium
+    - id: B8
+      title: Наличие неиспользуемого/устаревшего кода индексации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B9
+      title: Слабая обработка ошибок при парсинге файлов
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B10
+      title: Хрупкость скриптов управления сервисами
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B11
+      title: Использование `latest` тега для Docker-образа
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 11
+    verified: 10
+    plausible: 1
+    'false': 0
+    unique_findings: 8
+  _mapping:
+    a: abra
+    b: baseline

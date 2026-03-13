@@ -1,0 +1,116 @@
+tag: gemini-3.1-pro-preview_full
+baseline:
+  model: gemini/gemini-3.1-pro-preview
+  total_tokens: 103289
+  input_tokens: 95712
+  output_tokens: 7577
+  wall_time_sec: 70.3
+  cost_usd: 0.282348
+abra:
+  model: gemini/gemini-3.1-pro-preview
+  total_tokens: 125708
+  input_tokens: 119674
+  output_tokens: 6034
+  wall_time_sec: 58.1
+  cost_usd: 0.311756
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: Отчёт B («baseline») продемонстрировал более широкий охват и глубину аудита,
+    выявив 10 различных, преимущественно верифицированных, уязвимостей и архитектурных
+    недочётов, в то время как Отчёт A («abra») обнаружил 5. Отчёт B также продемонстрировал
+    более точную оценку критичности для некоторых общих проблем и обнаружил несколько
+    ценных уникальных уязвимостей, таких как несовпадение портов REST/gRPC и неполный
+    парсинг импортов Python. Оба отчёта высоко эффективны и не содержат галлюцинаций.
+  report_a:
+    findings:
+    - id: A1
+      title: Absolute Path Injection / Directory Traversal
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A2
+      title: Недетерминированные ID (Скрытая дубликация)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A3
+      title: Состояние гонки при индексации (Race Condition)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A4
+      title: Молчаливое усечение данных при кластеризации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A5
+      title: Мёртвый код (src/index.py)
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 5
+    verified: 5
+    plausible: 0
+    'false': 0
+    unique_findings: 5
+  report_b:
+    findings:
+    - id: B1
+      title: Уязвимость Path Traversal
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Недетерминированные ID векторов и повреждение состояния
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B3
+      title: Состояние гонки (Race Condition) при индексации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Несовпадение портов REST и gRPC
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B5
+      title: Усечение выборки при кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B6
+      title: Экспоненциальное потребление памяти при инкрементальной синхронизации
+      status: plausible
+      actionability: actionable
+      severity: medium
+    - id: B7
+      title: Потеря зависимостей (Imports) при построении графа кода
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B8
+      title: Сломанный 'мертвый' код (src/index.py)
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B9
+      title: Скрытие ошибок декодирования
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B10
+      title: Наивное несемантическое чанкование кода
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 10
+    verified: 9
+    plausible: 1
+    'false': 0
+    unique_findings: 10
+  _mapping:
+    a: abra
+    b: baseline

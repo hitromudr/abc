@@ -1,0 +1,149 @@
+tag: gemini-2.5-pro
+baseline:
+  model: gemini/gemini-2.5-pro
+  total_tokens: 102761
+  input_tokens: 95712
+  output_tokens: 7049
+  wall_time_sec: 64.8
+  cost_usd: 0.19013000000000002
+abra:
+  model: gemini/gemini-2.5-pro
+  total_tokens: 113611
+  input_tokens: 102663
+  output_tokens: 10948
+  wall_time_sec: 103.6
+  cost_usd: 0.23780875
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: a
+  reason: Оба отчёта исключительны по точности (0 галлюцинаций и 100% recall по GT).
+    Abra побеждает благодаря более точной оценке критичности ключевых рисков (race
+    condition, управление процессами) и обнаружению дополнительных векторов безопасности
+    (rate limiting, CWD-зависимый путь), которые не были выявлены baseline.
+  report_a:
+    findings:
+    - id: C-01
+      title: Недетерминированные ID векторов
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: C-02
+      title: Path Traversal в API
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: C-03
+      title: Гонка Данных (Race Condition) при Индексации
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: H-01
+      title: Хрупкое Управление Процессами
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: H-02
+      title: Отсутствие Ограничения Запросов (Rate Limiting)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: H-03
+      title: Нестабильный Путь к Проектам (CWD-dependent Path)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: H-04
+      title: Потеря фоновых задач при перезапуске
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: M-01
+      title: Поверхностный Health Check
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: M-02
+      title: Потенциальная Shell Injection
+      status: plausible
+      actionability: actionable
+      severity: medium
+    - id: M-03
+      title: Медленное получение состояния индекса
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: L-01
+      title: Жесткая привязка версий зависимостей
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 11
+    verified: 10
+    plausible: 1
+    'false': 0
+    unique_findings: 6
+  report_b:
+    findings:
+    - id: SEC-01
+      title: Path Traversal в API-эндпоинтах
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: DI-01
+      title: Недетерминированная генерация ID для точек в Qdrant
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: ARC-01
+      title: Состояние гонки (Race Condition) при параллельной индексации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: ARC-02
+      title: Наивный алгоритм разбиения на чанки (Chunking)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: ARC-03
+      title: Загрузка всех векторов в память для кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: ARC-04
+      title: Хранение статуса задач в памяти процесса
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: ARC-05
+      title: Пост-фильтрация вместо query-time бустинга в поиске
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: INF-01
+      title: Хрупкий механизм демонизации через `nohup`
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: INF-02
+      title: Отсутствие поддержки локального Qdrant в основном приложении
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: INF-03
+      title: Неиспользуемый API-параметр `reindex`
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: INF-04
+      title: Мёртвый код в репозитории
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 11
+    verified: 11
+    plausible: 0
+    'false': 0
+    unique_findings: 6
+  _mapping:
+    a: abra
+    b: baseline

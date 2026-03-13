@@ -1,0 +1,85 @@
+tag: gemini-3.1-flash-lite-preview_full
+baseline:
+  model: gemini/gemini-3.1-flash-lite-preview
+  total_tokens: 96763
+  input_tokens: 95712
+  output_tokens: 1051
+  wall_time_sec: 6.6
+  cost_usd: 0.0255045
+abra:
+  model: gemini/gemini-3.1-flash-lite-preview
+  total_tokens: 121612
+  input_tokens: 119674
+  output_tokens: 1938
+  wall_time_sec: 12.2
+  cost_usd: 0.032825499999999994
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: a
+  reason: Report A демонстрирует идеальную точность без единой галлюцинации (0 false
+    positives), все его находки верифицированы или обоснованно правдоподобны. Report
+    B, несмотря на большее количество верифицированных находок и более высокую оценку
+    некоторых дефектов (Race Condition), содержит явную ложную находку (ошибка логирования
+    в manage.py), что значительно подрывает доверие к его надежности.
+  report_a:
+    findings:
+    - id: A1
+      title: Недетерминированные ID (hash randomization)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A2
+      title: Race condition при индексации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A3
+      title: Потенциальный Directory Traversal
+      status: plausible
+      actionability: actionable
+      severity: medium
+    - id: A4
+      title: Отсутствие проверки батч-ошибок Qdrant
+      status: verified
+      actionability: actionable
+      severity: high
+    total: 4
+    verified: 3
+    plausible: 1
+    'false': 0
+    unique_findings: 4
+  report_b:
+    findings:
+    - id: B1
+      title: Детерминизм идентификаторов (Qdrant)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Race Condition при индексации
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B3
+      title: Ошибка логирования в manage.py
+      status: 'false'
+      actionability: no-fix
+      severity: high
+    - id: B4
+      title: Отсутствие проверки ответа Qdrant upsert
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B5
+      title: Embedder performance (batch_size)
+      status: verified
+      actionability: actionable
+      severity: medium
+    total: 5
+    verified: 4
+    plausible: 0
+    'false': 1
+    unique_findings: 4
+  _mapping:
+    a: baseline
+    b: abra

@@ -1,0 +1,195 @@
+tag: gemini-2.5-flash_full
+baseline:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 118714
+  input_tokens: 95712
+  output_tokens: 23002
+  wall_time_sec: 106.8
+  cost_usd: 0.0862186
+abra:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 132878
+  input_tokens: 119674
+  output_tokens: 13204
+  wall_time_sec: 66.5
+  cost_usd: 0.0689122
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: a
+  reason: Отчёт А выявил уникальную критическую уязвимость (Path Traversal) и предоставил
+    более глубокие архитектурные инсайты (отсутствие Телоса, версионирования), отсутствующие
+    или недооценённые в Отчёте B. Хотя Отчёт B содержал больше находок, фокус Отчёта
+    А на высокоприоритетных и фундаментальных проблемах демонстрирует превосходное
+    качество аудита.
+  report_a:
+    findings:
+    - id: A1
+      title: Отсутствие измеримого Телоса
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A2
+      title: Уязвимость Path Traversal через project_name
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A3
+      title: Недетерминированные Qdrant Point ID
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: A4
+      title: Concurrent Indexing Race Condition
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A5
+      title: Потенциальный OOM при кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A6
+      title: Отсутствие версионирования индекса
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A7
+      title: Потеря статусов фоновых задач при перезапуске API
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A8
+      title: Несогласованность Qdrant клиента в debug_qdrant.py
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A9
+      title: Отсутствие алертов на сбой индексации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A10
+      title: Неэффективное удаление точек в IndexingService
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A11
+      title: Проблемы с горячим обновлением ML-моделей
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A12
+      title: Недостаточное логирование в uvicorn
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A13
+      title: Несоответствие имени файла в index.py
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A14
+      title: Неиспользуемые зависимости
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 14
+    verified: 14
+    plausible: 0
+    'false': 0
+    unique_findings: 14
+  report_b:
+    findings:
+    - id: B1
+      title: Недетерминированные Point ID в Qdrant (GT-3)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Гонка Условий при Обновлении Состояния Задач (GT-4)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B3
+      title: Скрытая Деструктивная Операция Reindex (Model Dimension Change)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Жесткое Кодирование Пути к Проекту в Скрипте index.py
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B5
+      title: Отсутствие Блокировок на Уровне Проекта для Индексирования
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B6
+      title: Неполный Скроллинг в Endpoint Кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B7
+      title: Неоптимальная Логика Keyword Boosting в Поиске
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B8
+      title: Упрощенный Разрешитель Python Импортов в graph_builder
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B9
+      title: Неполное Определение Типов Файлов в graph_builder (Code Mention Regex)
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B10
+      title: Слишком широкое исключение файлов в Makefile
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B11
+      title: Зависимость от uv без Явной Проверки Установки
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B12
+      title: Хрупкое Управление sys.path в preload_model.py
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B13
+      title: Несоответствие Названия Qdrant Local Data в debug_qdrant.py
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B14
+      title: Потенциально Неэффективное Получение Файлов для Индексации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B15
+      title: Базовая Стратегия Чанкинга
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B16
+      title: Отсутствие Валидации project_name в API Endpoints
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B17
+      title: Потенциальная Несогласованность API_PORT
+      status: verified
+      actionability: actionable
+      severity: low
+    total: 17
+    verified: 17
+    plausible: 0
+    'false': 0
+    unique_findings: 17
+  _mapping:
+    a: abra
+    b: baseline

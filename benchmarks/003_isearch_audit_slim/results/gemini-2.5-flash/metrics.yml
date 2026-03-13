@@ -1,0 +1,158 @@
+tag: gemini-2.5-flash
+baseline:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 114702
+  input_tokens: 95712
+  output_tokens: 18990
+  wall_time_sec: 93.9
+  cost_usd: 0.0761886
+abra:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 114665
+  input_tokens: 102663
+  output_tokens: 12002
+  wall_time_sec: 62.4
+  cost_usd: 0.0608039
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: Report B демонстрирует более высокую точность, не допуская ложных срабатываний,
+    особенно в критически важных областях (например, Path Traversal). Хотя Report
+    A содержит больше специфичных находок, наличие в нём двух ложных дефектов, один
+    из которых ошибочно оценен как 'high' (SEC-01), снижает его общую ценность. Report
+    B фокусируется на системных 'анти-паттернах' и предлагает более концептуально
+    верные и практически применимые рекомендации, даже при меньшем общем количестве
+    находок.
+  report_a:
+    findings:
+    - id: AR-01
+      title: Неперсистентное состояние задач индексации (TASK_STATUS)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: AR-02
+      title: Игнорирование параметра reindex для полной переиндексации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: AR-03
+      title: Отсутствие пер-проектных блокировок при индексации (GT-4)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: AR-04
+      title: Жестко заданный путь PROJECT_ROOT_PATH в src/index.py
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: DH-01
+      title: Недетерминированные Point ID из hash() (GT-3)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: DH-02
+      title: Ограниченный лимит scroll при кластеризации
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: DH-03
+      title: Неоптимальный размер батча для эмбеддингов в _process_files_in_batches
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: DH-04
+      title: Неявное понижение точности в embedder.encode
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: AF-01
+      title: Несогласованная обработка ошибок в delete_project_index_endpoint
+      status: 'false'
+      actionability: no-fix
+      severity: medium
+    - id: AF-02
+      title: Инвертированное направление масштабирования в UI (Vis.js)
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: AF-03
+      title: Избыточность show_progress_bar=False
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: IO-01
+      title: Зависимость от uv без альтернативы
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: IO-02
+      title: Агрессивный sys.exit(1) в CLI-скриптах
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: IO-03
+      title: Использование bind mount вместо именованных томов Docker для Qdrant
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: SEC-01
+      title: Потенциальная уязвимость "Path Traversal" в graph_builder.py
+      status: 'false'
+      actionability: no-fix
+      severity: high
+    total: 15
+    verified: 13
+    plausible: 0
+    'false': 2
+    unique_findings: 13
+  report_b:
+    findings:
+    - id: B1
+      title: Недетерминированные ID (Анти-паттерн А)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Блокирующая Индексация (Анти-паттерн Б)
+      status: verified
+      actionability: vague
+      severity: high
+    - id: B3
+      title: Когнитивное искажение В (Implicit Contracts - hash() + lack of retries
+        for Qdrant init)
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B4
+      title: Строгая валидация путей (Path Traversal hardening)
+      status: plausible
+      actionability: actionable
+      severity: medium
+    - id: B5
+      title: Унифицировать стратегию чанкирования данных
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B6
+      title: manage.py daemonization improvement
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B7
+      title: Разделить src/index.py от API логики
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B8
+      title: Кеширование embeddings
+      status: verified
+      actionability: vague
+      severity: low
+    total: 8
+    verified: 7
+    plausible: 1
+    'false': 0
+    unique_findings: 7
+  _mapping:
+    a: baseline
+    b: abra
