@@ -56,11 +56,35 @@ abracadabra/
 
 ## Bench Runner
 
-`bench/` — Python-раннер для мульти-модельных A/B тестов через LiteLLM. Зависимости: `litellm`, `pyyaml`.
+`bench/` — мульти-модельный раннер бенчмарков. 6 классов задач, объективные метрики, multi-judge verdict. Зависимости: `litellm`, `pyyaml`.
 
 ```bash
 python -m bench.runner NNN --model MODEL [--abra] [--full-kb] [--verdict] [--tag TAG]
+python -m bench.runner NNN --verdict --n-judges 3 --style-blind --tag TAG
 python -m bench.compare NNN [--full-kb] [--table-only]
+```
+
+Модели: LiteLLM (`gemini/...`, `deepseek/...`) или Claude Code CLI (`claude-code/opus`, `claude-code/sonnet`).
+
+Структура bench/:
+```
+bench/
+├── runner.py          ← CLI: baseline / abra / verdict фазы
+├── compare.py         ← мульти-модельное сравнение + COMPARISON.md
+├── models.py          ← LiteLLM + Claude Code CLI backend
+├── task_class.py      ← абстрактная база TaskClass
+├── registry.py        ← реестр 6 классов задач
+├── tasks/             ← реализации: code_audit, bug_fix, refactor, greenfield, code_review, debug
+├── executors.py       ← песочница: apply patch → run tests (tmpdir isolation)
+├── judges.py          ← multi-judge: cross-family exclusion, majority vote, Cohen's kappa
+├── normalizer.py      ← style-blind preprocessing
+├── statistics.py      ← bootstrap CI, Mann-Whitney U, composite score
+├── pareto.py          ← Pareto frontier: quality × cost × speed
+├── gt_matcher.py      ← автоматический GT recall
+├── file_verifier.py   ← проверка file:line ссылок
+├── verdict.py         ← ослеплённый A/B арбитраж
+├── metrics.py         ← извлечение JSON из verdict
+└── context.py         ← build_project_context
 ```
 
 Результаты в `benchmarks/NNN_*/results/<tag>/`. Сводка — `COMPARISON.md`.

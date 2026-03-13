@@ -7,17 +7,17 @@
 ```
 benchmarks/NNN_название/
 ├── BRIEF.md        ← задание (единый вход для обоих прогонов)
-├── meta.yml        ← модель, версия, Ground Truth, ресурсы, метрики
+├── meta.yml        ← модель, версия, GT, task_class, task_config
 ├── baseline.md     ← результат vanilla-агента
 ├── abra.md         ← результат abra-агента
 ├── verdict.md      ← ослеплённый арбитраж
 └── results/        ← мульти-модельные прогоны (bench runner)
-    ├── COMPARISON.md           ← сводная таблица
+    ├── COMPARISON.md           ← сводная таблица + выводы
     └── <model>_<kb>/           ← результаты по модели
         ├── baseline.md
         ├── abra.md
         ├── verdict.md
-        └── metrics.yml
+        └── metrics.yml         ← токены, cost, objective metrics
 ```
 
 ## Два способа запуска
@@ -36,55 +36,108 @@ Self-contained — не требует предварительного `abra in
 2. **Abra audit** — полный конвейер (Пре-чеклист → Фазы 0–6 → Октагон) → `abra.md`.
 3. **Verdict (ослепление, GT-free)** — рандомные метки «Report A» / «Report B», верификация каждой находки по коду, деанонимизация в финале.
 
-### 2. Bench Runner (мульти-модельный, API)
+### 2. Bench Runner (мульти-модельный, API + CLI)
 
 ```bash
 pip install -r bench/requirements.txt
 
-# Одна модель — три фазы
-python -m bench.runner 003 --model gemini/gemini-3.1-pro-preview --tag test
-python -m bench.runner 003 --model gemini/gemini-3.1-pro-preview --abra --tag test
-python -m bench.runner 003 --verdict --verdict-model gemini/gemini-2.5-flash --tag test
+# Code audit (verdict через модель-судью)
+python -m bench.runner 003 --model gemini/gemini-2.5-flash --tag test
+python -m bench.runner 003 --model gemini/gemini-2.5-flash --abra --tag test
+python -m bench.runner 003 --verdict --tag test
 
-# Массовый прогон + сводная таблица
-python -m bench.compare 003
-python -m bench.compare 003 --full-kb     # полная KB (75KB вместо 33KB)
-python -m bench.compare 003 --table-only  # перегенерировать таблицу
+# Bug fix (объективные метрики — без судьи)
+python -m bench.runner 004 --model claude-code/opus --tag opus-test
+
+# Multi-judge (3 судьи из разных семейств, Cohen's kappa)
+python -m bench.runner 003 --verdict --n-judges 3 --style-blind --tag test
+
+# Opus через Claude Code подписку (без API-ключа)
+python -m bench.runner 004 --model claude-code/opus --tag opus-test
+
+# Сводная таблица
+python -m bench.compare 004 --table-only
 ```
 
-**Изоляция:** baseline и abra — два независимых stateless HTTP-запроса к API. Разные system prompts, никакого общего состояния. Baseline получает `"Senior SE"`, abra получает knowledge base как system prompt.
+**Изоляция:** baseline и abra — два независимых stateless запроса. Разные system prompts, никакого общего состояния.
 
 **Ослепление:** verdict-модель получает отчёты как «Report A» / «Report B» с рандомным маппингом. Деанонимизация после подсчёта метрик.
 
-## Метрики verdict (GT-free)
+**Cross-judge:** `--n-judges 3` запускает 3 судей из разных семейств (Gemini, DeepSeek, Claude, OpenAI). Модель-производитель исключается из пула. Majority vote + Cohen's kappa для inter-rater reliability.
 
-Основные метрики не зависят от заранее известных багов:
+## Метрики
 
-- **Верификация** — для каждой находки: открыть файл/строку, проверить по коду. `verified` / `plausible` / `false`
+### Объективные (без судьи)
+
+| Метрика | Классы задач |
+|---------|-------------|
+| `tests_pass` | bug_fix, refactor, greenfield, debug |
+| `regression_free` | bug_fix, refactor |
+| `compiles` | все code-producing |
+| `diff_size` | bug_fix, refactor, debug |
+| `gt_recall` | code_audit, code_review |
+| `file_ref_valid` | code_audit, code_review |
+
+### Субъективные (verdict, GT-free)
+
+- **Верификация** — для каждой находки: `verified` / `plausible` / `false`
 - **Precision** — verified / total
+- **Weighted score** — critical=3, high=2, medium=1, low=0.5
 - **Unique findings** — находки только одного отчёта
-- **Actionability** — указана строка кода, root cause, путь к исправлению? `actionable` / `vague` / `no-fix`
-- **Severity distribution** — weighted score: critical=3, high=2, medium=1, low=0.5
-- **ROI** — overhead abra (tokens, cost) vs дельта качества
 
-**GT (опционально):** если в `meta.yml` заполнен `ground_truth_bugs` — считается recall и severity calibration. GT привязан к коммиту и устаревает.
+**GT (опционально):** если в `meta.yml` заполнен `ground_truth_bugs` — считается recall. GT привязан к коммиту и устаревает.
+
+## Классы задач
+
+| Класс | Метрики | Судья нужен? |
+|-------|---------|:------------:|
+| `code_audit` | findings, precision, severity, GT recall | да |
+| `bug_fix` | tests_pass, regression_free, compiles, diff_size | **нет** |
+| `refactor` | tests_pass, api_preserved, cyclomatic_delta | **нет** |
+| `greenfield` | test_pass_ratio, lint_clean, LOC | **нет** |
+| `code_review` | GT recall, precision, file_ref_valid | частично |
+| `debug` | correct_root_cause, fix_tests_pass | частично |
+
+Bug fix и refactor — **якорные классы**: оценка полностью объективная, тесты = Ground Truth.
 
 ## Реестр
 
-| # | Проект | Модели | Verdict | Данные |
-|---|--------|--------|---------|--------|
-| **001** | `isearch` | Claude Opus 4.6 (interactive) | [abra wins](001_isearch_audit/verdict.md) | — |
-| **002** | `isearch` | Gemini 3.1 Pro (interactive) | *pending* | — |
-| **003** | `isearch` | 7 моделей × 2 KB (API runner) | **abra 6 / baseline 7 / tie 1** | [Сводная таблица](003_isearch_audit_slim/results/COMPARISON.md) |
+| # | Проект | Класс | Модели | Результат | Данные |
+|---|--------|-------|--------|-----------|--------|
+| **001** | `isearch` | code_audit | Claude Opus 4.6 (interactive) | [abra wins](001_isearch_audit/verdict.md) | — |
+| **002** | `isearch` | code_audit | Gemini 3.1 Pro (interactive) | *pending* | — |
+| **003** | `isearch` | code_audit | 7 моделей × 2 KB (API) | **abra 6 / baseline 7 / tie 1** | [Таблица](003_isearch_audit_slim/results/COMPARISON.md) |
+| **004** | `isearch` | bug_fix | Opus + Gemini Flash | **abra 0 / baseline 2** | [Таблица](004_isearch_bugfix_hash/results/COMPARISON.md) |
 
-### Bench 003: ключевые выводы
+### Bench 003: Code Audit (14 прогонов)
 
-14 прогонов: Gemini 2.5 Flash/Pro, 3.0 Flash/Pro, 3.1 Flash-Lite/Pro, DeepSeek Chat. Каждая модель — slim KB (33KB, 5 файлов) и full KB (75KB, 16 файлов).
+7 моделей × 2 KB (slim 33KB / full 75KB). Ослеплённый verdict.
 
-1. **Full KB (75KB) вредит флагманам** — Lost in the Middle: модель тратит compute на соответствие фреймворку вместо поиска багов.
-2. **Full KB помогает mid-tier** — работает как Chain of Thought рельсы для моделей со слабым внутренним "здравым смыслом".
-3. **Slim KB оптимален** для флагманов — подтверждает архитектурное решение v3.0-slim.
-4. **Abra ≠ волшебный промпт** — в zero-shot API почти паритет. Сила abra — в интерактивных агентных средах (Approval Gate, EXECUTION_STATE, пошаговая маршрутизация).
+| Вывод | Детали |
+|-------|--------|
+| Full KB вредит флагманам | Lost in the Middle — compute на фреймворк вместо поиска багов |
+| Full KB помогает mid-tier | CoT-рельсы для моделей со слабой внутренней структурой |
+| Slim KB оптимален | Для флагманов 33KB > 75KB |
+| Abra ≈ baseline в API | Сила abra — в интерактивной маршрутизации, не в промпте |
+
+### Bench 004: Bug Fix (2 модели)
+
+Объективная оценка: apply patch → run tests → regression check. Судья не нужен.
+
+| Вывод | Детали |
+|-------|--------|
+| Оба Opus варианта прошли | Baseline 11 строк / $0.06, abra 13 строк / $0.70 — baseline в 12× дешевле |
+| Gemini abra провалился | Thinking model потратил токены на рассуждения, не сгенерировал патч |
+| Abra вреден для bug fix | Clear-домен — конкретная задача, бинарный критерий. Фреймворк = overhead |
+
+### Кросс-задачные выводы
+
+| Класс задачи | Эффект abra | Причина |
+|-------------|-------------|---------|
+| Code Audit (Cynefin: Complex) | ≈ паритет | Модели уже умеют в структурный аудит |
+| Bug Fix (Cynefin: Clear) | вреден | Задача конкретная, фреймворк мешает |
+| *Greenfield (Cynefin: Complex)* | *гипотеза: поможет* | *Approval Gate + Октагон для trade-off* |
+| *Refactor (Cynefin: Complicated)* | *гипотеза: поможет* | *EXECUTION_STATE для изоляции* |
 
 ---
 *«Разница, которая не создаёт разницы в физическом мире, не имеет значения» (Фильтр 5: Джеймс).*
