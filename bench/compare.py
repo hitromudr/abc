@@ -207,7 +207,51 @@ def _generate_objective_table(results: list[dict], meta: dict) -> str:
         else:
             wins["tie"] += 1
 
-    lines.append(f"\n## Итого: abra {wins['abra']} / baseline {wins['baseline']} / tie {wins['tie']}\n")
+    lines.append(f"\n## Итого: abra {wins['abra']} / baseline {wins['baseline']} / tie {wins['tie']}")
+
+    # Выводы
+    lines.append("\n## Выводы\n")
+    notes = []
+    for r in results:
+        tag = r.get("tag", "?")
+        if "_error" in r:
+            continue
+        kb = "full" if "_full" in tag else "slim"
+        model_name = tag.replace("_full", "").replace("_slim", "")
+
+        bl_obj = r.get("baseline", {}).get("objective", {})
+        ab_obj = r.get("abra", {}).get("objective", {})
+        bl_pass = bl_obj.get("tests_pass") or bl_obj.get("fix_tests_pass", False)
+        ab_pass = ab_obj.get("tests_pass") or ab_obj.get("fix_tests_pass", False)
+        bl_diff = bl_obj.get("diff_size", -1)
+        ab_diff = ab_obj.get("diff_size", -1)
+        bl_cost = r.get("baseline", {}).get("cost_usd")
+        ab_cost = r.get("abra", {}).get("cost_usd")
+
+        if bl_pass and ab_pass:
+            cost_ratio = f" (cost: ${bl_cost:.3f} vs ${ab_cost:.3f})" if bl_cost and ab_cost else ""
+            notes.append(
+                f"- **{model_name}** [{kb}]: оба варианта прошли тесты. "
+                f"Baseline diff {bl_diff} строк, abra diff {ab_diff} строк{cost_ratio}."
+            )
+        elif bl_pass and not ab_pass:
+            err = ab_obj.get("patch_error", "patch/tests fail")
+            notes.append(
+                f"- **{model_name}** [{kb}]: baseline ✅, abra ✗ ({err[:80]}). "
+                f"abra KB помешала генерации патча."
+            )
+        elif ab_pass and not bl_pass:
+            notes.append(
+                f"- **{model_name}** [{kb}]: baseline ✗, abra ✅. "
+                f"abra KB помогла найти правильный фикс."
+            )
+        else:
+            notes.append(f"- **{model_name}** [{kb}]: оба варианта не прошли тесты.")
+
+    if not notes:
+        notes.append("- Нет данных для анализа.")
+    lines.extend(notes)
+    lines.append("")
 
     return "\n".join(lines)
 
