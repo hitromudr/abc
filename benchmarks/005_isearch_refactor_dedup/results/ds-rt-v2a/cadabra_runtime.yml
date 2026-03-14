@@ -1,0 +1,18 @@
+api_preserved: true
+compiles: true
+diff_size: 0
+model: deepseek/deepseek-chat
+step_log:
+- id: 1
+  retries: 1
+  status: ✅
+- id: 2
+  retries: 3
+  status: ❌
+steps_completed: 1
+steps_total: 6
+tag: ds-rt-v2a
+tests_pass: false
+total_cost: 0.005969
+total_tokens: 22086
+total_wall: 482.1

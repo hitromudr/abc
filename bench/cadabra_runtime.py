@@ -54,40 +54,62 @@ STEPS = [
     {
         "id": 2,
         "action": "Создай файл src/file_utils.py с:\n"
-                  "- CODE_EXTENSIONS, DOCS_EXTENSIONS, ALLOWED_EXTENSIONS (superset из всех 3 файлов)\n"
+                  "- CODE_EXTENSIONS — множество расширений для кода (superset из services.py и index.py)\n"
+                  "- DOCS_EXTENSIONS — множество расширений для документации\n"
+                  "- ALLOWED_EXTENSIONS — объединение CODE_EXTENSIONS | DOCS_EXTENSIONS\n"
+                  "- FILE_EXTENSIONS — алиас для ALLOWED_EXTENSIONS (для обратной совместимости)\n"
                   "- load_gitignore_spec(root_path) — объединённая загрузка .gitignore с полным набором default patterns\n"
-                  "- Вспомогательные функции по необходимости\n"
                   "Выдай ПОЛНОЕ содержимое файла.",
         "verify": "python -m py_compile src/file_utils.py",
     },
     {
         "id": 3,
-        "action": "Рефакторь src/index.py: удали ALLOWED_EXTENSIONS и load_gitignore_spec(), "
-                  "импортируй из file_utils. Сохрани сигнатуру load_documents() без изменений. "
+        "action": "Рефакторь src/index.py:\n"
+                  "1. Добавь import: from file_utils import ALLOWED_EXTENSIONS, load_gitignore_spec\n"
+                  "2. MUST_DO: ПОЛНОСТЬЮ УДАЛИ определение ALLOWED_EXTENSIONS (set/list литерал) из этого файла\n"
+                  "3. MUST_DO: ПОЛНОСТЬЮ УДАЛИ функцию load_gitignore_spec() из этого файла (весь def блок)\n"
+                  "4. MUST_DO: ПОЛНОСТЬЮ УДАЛИ import pathspec, если он больше не используется напрямую\n"
+                  "5. Замени все вызовы на импортированные версии\n"
+                  "6. Сохрани сигнатуру load_documents() без изменений\n"
                   "Выдай ПОЛНОЕ содержимое изменённого файла.",
         "verify": "python -m py_compile src/index.py",
     },
     {
         "id": 4,
-        "action": "Рефакторь src/services.py: удали code_extensions, docs_extensions, allowed_extensions, "
-                  "_load_gitignore_spec(). Импортируй из file_utils. "
-                  "Сохрани сигнатуры IndexingService.__init__() и run_indexing() без изменений. "
+        "action": "Рефакторь src/services.py:\n"
+                  "1. Добавь import: from file_utils import FILE_EXTENSIONS, load_gitignore_spec\n"
+                  "2. MUST_DO: ПОЛНОСТЬЮ УДАЛИ определения self.code_extensions = {...}, self.docs_extensions = {...}, self.allowed_extensions = ... из __init__()\n"
+                  "3. Замени ВСЕ использования self.allowed_extensions / self.code_extensions / self.docs_extensions на FILE_EXTENSIONS\n"
+                  "4. MUST_DO: ПОЛНОСТЬЮ УДАЛИ метод _load_gitignore_spec() (весь def блок)\n"
+                  "5. MUST_DO: ПОЛНОСТЬЮ УДАЛИ import pathspec, если он больше не используется напрямую\n"
+                  "6. КРИТИЧНО: В итоговом файле НЕ ДОЛЖНО быть слов 'code_extensions', 'docs_extensions', 'allowed_extensions' НИГДЕ — ни в коде, ни в import, ни в комментариях. Используй ТОЛЬКО FILE_EXTENSIONS.\n"
+                  "7. Сохрани сигнатуры IndexingService.__init__() и run_indexing() без изменений\n"
                   "Выдай ПОЛНОЕ содержимое изменённого файла.",
-        "verify": "python -m py_compile src/services.py",
+        "verify": "python -m py_compile src/services.py && ! grep -q 'self\\.code_extensions\\|self\\.docs_extensions\\|self\\.allowed_extensions' src/services.py",
     },
     {
         "id": 5,
-        "action": "Рефакторь src/graph_builder.py: удали inline gitignore-блок в build_graph(), "
-                  "импортируй load_gitignore_spec из file_utils. "
-                  "Сохрани сигнатуру build_graph() без изменений. "
+        "action": "Рефакторь src/graph_builder.py:\n"
+                  "1. Добавь import: from file_utils import load_gitignore_spec\n"
+                  "2. MUST_DO: ПОЛНОСТЬЮ УДАЛИ весь inline-блок загрузки .gitignore в build_graph() — "
+                  "это включает pathspec.PathSpec, open('.gitignore'), DEFAULT_PATTERNS и любой код создания spec\n"
+                  "3. MUST_DO: ПОЛНОСТЬЮ УДАЛИ import pathspec, если он больше не используется напрямую\n"
+                  "4. Замени создание spec на вызов load_gitignore_spec(root)\n"
+                  "5. Сохрани сигнатуру build_graph() без изменений\n"
                   "Выдай ПОЛНОЕ содержимое изменённого файла.",
         "verify": "python -m py_compile src/graph_builder.py",
     },
     {
         "id": 6,
-        "action": "Финальные тесты не прошли. Проанализируй ошибку и исправь файл, который её вызывает. "
-                  "Выдай ПОЛНОЕ содержимое исправленного файла в ```python``` блоке. "
-                  "В начале ответа напиши имя файла: FILE: src/имя_файла.py",
+        "action": "Финальные тесты не прошли. Проанализируй ошибку и исправь ВСЕ файлы, которые нужно поправить. "
+                  "Для КАЖДОГО исправленного файла:\n"
+                  "1. Напиши: FILE: src/имя_файла.py\n"
+                  "2. Затем ПОЛНОЕ содержимое файла в ```python``` блоке\n"
+                  "Можно исправить несколько файлов за раз.\n\n"
+                  "ПОДСКАЗКА: тесты проверяют что слова 'pathspec', 'gitignore', 'allowed_extensions', "
+                  "'code_extensions', 'docs_extensions' встречаются НЕ БОЛЕЕ чем в 2 файлах из src/. "
+                  "Убедись что эти слова полностью удалены из файлов-потребителей (services.py, graph_builder.py, index.py) — "
+                  "включая import-строки с pathspec.",
         "verify": "python -m pytest tests/unit/test_refactor_dedup.py tests/unit/test_graph_builder.py tests/unit/test_graph_analyzer.py -v",
         "fix_step": True,
     },
@@ -121,6 +143,16 @@ def extract_file_content(response_text):
     return None
 
 
+def extract_multi_files(response_text):
+    """Извлекает несколько файлов из ответа: FILE: src/xxx.py + ```python``` блок."""
+    # Pattern: FILE: src/xxx.py followed by ```python ... ```
+    pattern = r'FILE:\s*(src/\S+\.py)\s*\n```(?:python)?\s*\n(.*?)```'
+    matches = re.findall(pattern, response_text, re.DOTALL)
+    if matches:
+        return {fname: content for fname, content in matches}
+    return {}
+
+
 def call_model(model, system_prompt, user_prompt, timeout=120):
     """Вызов модели через LiteLLM."""
     start = time.time()
@@ -131,6 +163,7 @@ def call_model(model, system_prompt, user_prompt, timeout=120):
             {"role": "user", "content": user_prompt},
         ],
         timeout=timeout,
+        max_tokens=8192,
     )
     wall = time.time() - start
     usage = resp.usage
@@ -261,20 +294,22 @@ def run_cadabra(project_path, model, tag="runtime"):
 
             # Extract and apply file content
             if step.get("fix_step"):
-                # Step 6 fix: extract filename from response
-                file_content = extract_file_content(result["text"])
-                if file_content:
-                    # Try to find FILE: src/xxx.py in response
-                    file_match = re.search(r'FILE:\s*(src/\S+\.py)', result["text"])
-                    if file_match:
-                        target = file_match.group(1)
-                    else:
-                        # Guess from content
-                        target = "src/file_utils.py"
-                    write_file(work_dir, target, file_content)
-                    print(f"  → Исправлен {target} ({len(file_content)} chars)")
+                # Step 6 fix: extract multiple FILE: sections
+                files_written = extract_multi_files(result["text"])
+                if files_written:
+                    for fname, content in files_written.items():
+                        write_file(work_dir, fname, content)
+                        print(f"  → Исправлен {fname} ({len(content)} chars)")
                 else:
-                    print(f"  → WARN: не удалось извлечь файл")
+                    # Fallback: single file extraction
+                    file_content = extract_file_content(result["text"])
+                    if file_content:
+                        file_match = re.search(r'FILE:\s*(src/\S+\.py)', result["text"])
+                        target = file_match.group(1) if file_match else "src/file_utils.py"
+                        write_file(work_dir, target, file_content)
+                        print(f"  → Исправлен {target} ({len(file_content)} chars)")
+                    else:
+                        print(f"  → WARN: не удалось извлечь файл")
 
             elif step_id >= 2 and step_id <= 5:
                 file_content = extract_file_content(result["text"])
@@ -304,6 +339,11 @@ def run_cadabra(project_path, model, tag="runtime"):
                     break
                 else:
                     print(f"  ❌ Verify failed")
+                    if step.get("fix_step"):
+                        # Print test failure details for debugging
+                        fail_lines = [l for l in output.split('\n') if 'FAILED' in l or 'assert' in l.lower()]
+                        for fl in fail_lines[:5]:
+                            print(f"    {fl.strip()}")
                     if attempt < RETRY_BUDGET:
                         # Retry with error context
                         error_snippet = output[-1000:] if len(output) > 1000 else output
@@ -312,8 +352,10 @@ def run_cadabra(project_path, model, tag="runtime"):
                             user_prompt = (
                                 f"## Retry исправление (попытка {attempt+1}/{RETRY_BUDGET})\n\n"
                                 f"Тесты всё ещё падают:\n```\n{error_snippet}\n```\n\n"
-                                f"Определи какой файл сломан. В первой строке: FILE: src/имя.py\n"
-                                f"Выдай ПОЛНОЕ содержимое исправленного файла в ```python``` блоке."
+                                f"ПОДСКАЗКА: тесты проверяют количество файлов, содержащих слова 'pathspec', "
+                                f"'allowed_extensions', 'code_extensions', 'docs_extensions'. Не более 2 файлов.\n\n"
+                                f"Для КАЖДОГО файла, который нужно исправить, выдай:\n"
+                                f"FILE: src/имя.py\n```python\nсодержимое\n```\n"
                             )
                             for ff in ["src/file_utils.py", "src/services.py",
                                        "src/graph_builder.py", "src/index.py"]:
