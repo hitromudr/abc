@@ -1,13 +1,14 @@
-# Сводный отчёт: 24+ прогона, 3 класса задач, 8 моделей
+# Сводный отчёт: 30+ прогонов, 3 класса задач, 9 моделей
 
 > Дата: 2026-03-14 | abra v3.2 | Проект: isearch (~3K LOC Python)
 
-## 1. Code Audit (bench 003) — 14 прогонов
+## 1. Code Audit (bench 003) — 15 прогонов
 
 | Модель | KB | B out | A out | B cost | A cost | B time | A time | Winner |
 |--------|:---:|------:|------:|-------:|-------:|-------:|-------:|--------|
 | DeepSeek | slim | 2,311 | 4,096 | $0.003 | $0.027 | 72s | 140s | baseline |
 | DeepSeek | full | 2,164 | 4,096 | $0.003 | $0.030 | 105s | 225s | **abra** |
+| DeepSeek (100K ctx) | slim | 3,031 | 2,910 | $0.008 | $0.010 | 135s | 133s | **abra** |
 | Gemini 2.5 Flash | slim | 18,990 | 12,002 | $0.076 | $0.061 | 94s | 62s | **abra** |
 | Gemini 2.5 Flash | full | 23,002 | 13,204 | $0.086 | $0.069 | 107s | 67s | **abra** |
 | Gemini 2.5 Pro | slim | 7,049 | 10,948 | $0.190 | $0.238 | 65s | 104s | **abra** |
@@ -23,9 +24,9 @@
 
 Средние: B cost $0.106, A cost $0.195 (+84%). B time 60s, A time 114s (+90%).
 
-**Счёт: abra 6 / baseline 7 / tie 1**
+**Счёт: abra 7 / baseline 7 / tie 1**
 
-## 2. Bug Fix (bench 004) — 4 прогона
+## 2. Bug Fix (bench 004) — 6 прогонов
 
 | Модель | Phase | patch | tests | regr | comp | diff | out tok | cost | time |
 |--------|-------|:-----:|:-----:|:----:|:----:|-----:|--------:|-----:|-----:|
@@ -33,10 +34,12 @@
 | Opus | abra | ✅ | ✅ | ✅ | ✅ | 13 | 1,032 | $0.702 | 31s |
 | Gemini Flash | baseline | ✅ | ✅ | ✅ | ✅ | 26 | 4,955 | $0.041 | 24s |
 | Gemini Flash | abra | ❌ | ❌ | ❌ | ❌ | — | 0 | $0.031 | 27s |
+| DeepSeek | baseline | ✅ | ❌ | ❌ | ✅ | 34 | 2,457 | $0.008 | 107s |
+| DeepSeek | abra | ❌ | ❌ | ❌ | ❌ | — | 2,619 | $0.008 | 115s |
 
-**Счёт: abra 0 / baseline 2 / tie 0**
+**Счёт: abra 0 / baseline 2 / tie 1 (DeepSeek: оба провалились)**
 
-## 3. Refactor (bench 005) — 6 прогонов
+## 3. Refactor (bench 005) — 9 прогонов
 
 | Модель | Phase | patch | tests | comp | diff | CC Δ | out tok | cost | time |
 |--------|-------|:-----:|:-----:|:----:|-----:|-----:|--------:|-----:|-----:|
@@ -46,6 +49,9 @@
 | Gemini Flash | baseline | ✅ | ❌ | ✅ | 186 | +0.0 | 12,325 | $0.060 | 51s |
 | Gemini Flash | abra | ✅ | ❌ | ❌ | 272 | -7.7 | 19,840 | $0.081 | 84s |
 | Gemini Flash | cadabra | ✅ | ❌ | ❌ | 297 | -7.2 | 27,843 | $0.103 | 102s |
+| DeepSeek | baseline | ✅ | ❌ | ❌ | 117 | -6.5 | 4,096 | $0.009 | 175s |
+| DeepSeek | abra | ❌ | ❌ | ❌ | — | — | 2,150 | $0.008 | 95s |
+| DeepSeek | cadabra | ✅ | ❌ | ✅ | 6 | 0.0 | 994 | $0.008 | 46s |
 
 **Счёт: все 0 — ни одна модель не решила задачу в one-shot**
 
@@ -54,18 +60,22 @@
 | Метрика | Code Audit | Bug Fix | Refactor |
 |---------|:----------:|:-------:|:--------:|
 | Cynefin | Complex | Clear | Complicated |
-| Прогонов | 14 | 4 | 6 |
-| Моделей | 7 | 2 | 2 |
-| **abra wins** | **6** | **0** | **0** |
+| Прогонов | 15 | 6 | 9 |
+| Моделей | 8 (+ DS ×2) | 3 | 3 |
+| **abra wins** | **7** | **0** | **0** |
 | **baseline wins** | **7** | **2** | **0** |
-| tie / все fail | 1 | 0 | 6 |
-| Avg B cost | $0.106 | $0.050 | $0.386 |
-| Avg A cost | $0.195 | $0.367 | $0.415 |
-| Avg C cost | — | — | $0.421 |
-| Cost overhead (A vs B) | +84% | +634% | +8% |
-| tests_pass rate B | n/a | 2/2 (100%) | 0/2 (0%) |
-| tests_pass rate A | n/a | 1/2 (50%) | 0/2 (0%) |
-| tests_pass rate C | n/a | — | 0/2 (0%) |
+| tie / все fail | 1 | 1 | 9 |
+| tests_pass rate B | n/a | 2/3 (67%) | 0/3 (0%) |
+| tests_pass rate A | n/a | 1/3 (33%) | 0/3 (0%) |
+| tests_pass rate C | n/a | — | 0/3 (0%) |
+
+### Стоимость по моделям (средняя за прогон)
+
+| Модель | B cost | A cost | Δ |
+|--------|-------:|-------:|--:|
+| Opus | $0.385 | $0.725 | +88% |
+| Gemini Flash | $0.059 | $0.057 | -3% |
+| DeepSeek | **$0.008** | **$0.009** | +13% |
 
 ## 5. Cadabra vs GSD в API-режиме
 
@@ -75,8 +85,10 @@
 |----------|:--------------:|:----------------------:|:-:|
 | Opus refactor | tests ❌, diff 100, $0.71 | tests ❌, diff 90, $1.49 | +109% cost, -10% diff |
 | Gemini refactor | tests ❌, diff 186, $0.06 | tests ❌, diff 297, $0.18 | +200% cost, +60% diff |
+| DeepSeek refactor | tests ❌, diff 117, $0.009 | tests ❌, diff 6, $0.016 | +78% cost, -95% diff |
 | Opus bug fix | tests ✅, diff 11, $0.06 | — | — |
 | Gemini bug fix | tests ✅, diff 26, $0.04 | — | — |
+| DeepSeek bug fix | tests ❌, diff 34, $0.008 | no patch, $0.008 | — |
 
 В API-режиме (без tools) cadabra стоит в 2–3× дороже GSD при идентичном результате. Но API-режим — ложное сравнение. Настоящий конкурент cadabra — это GSD-агент с инструментами.
 
@@ -164,3 +176,29 @@ GSD+Opus справляется с Complicated-задачами самостоя
 | Complex | Audit | abra ≈ GSD | abra помогает |
 
 **Cadabra = экономический оптимизатор.** Позволяет использовать дешёвую модель там, где GSD требует дорогую. `O(1 × expensive + n × cheap)` vs `O(n × expensive)`.
+
+## 8. DeepSeek-chat: полный прогон ($0.06 за 8 runs)
+
+Полный бенчмарк на самой дешёвой модели. Контекст обрезан до 100K (DeepSeek max 128K, проект 759K символов).
+
+### Результаты
+
+| Bench | Phase | patch | tests | comp | diff | cost | time | notes |
+|-------|-------|:-----:|:-----:|:----:|-----:|-----:|-----:|-------|
+| 003 audit | baseline | — | — | — | — | $0.008 | 135s | 20 findings, 19 verified |
+| 003 audit | abra | — | — | — | — | $0.010 | 133s | 14 findings, critical Qdrant auth |
+| 003 audit | verdict | — | — | — | — | — | — | **abra wins** |
+| 004 bugfix | baseline | ✅ | ❌ | ✅ | 34 | $0.008 | 107s | патч есть, тесты не прошли |
+| 004 bugfix | abra | ❌ | ❌ | ❌ | — | $0.008 | 115s | abra KB блокирует codegen |
+| 005 refactor | baseline | ✅ | ❌ | ❌ | 117 | $0.009 | 175s | CC Δ-6.5, но compiles ❌ |
+| 005 refactor | abra | ❌ | ❌ | ❌ | — | $0.008 | 95s | no patch |
+| 005 refactor | cadabra | ✅ | ❌ | ✅ | 6 | $0.008 | 46s | api_preserved ✅, diff слишком мал |
+
+**Итого: 8 прогонов, ~253K tokens, $0.059, ~13 минут**
+
+### Выводы по DeepSeek
+
+1. **Audit: abra wins** — baseline нашёл больше (20 vs 14), но пропустил critical (Qdrant без auth). Подтверждает паттерн "abra помогает слабым моделям находить архитектурные проблемы"
+2. **Bug fix: оба провал** — baseline извлёк патч, но тесты ❌. Причина: обрезка контекста до 100K убрала критичные файлы. С полным контекстом (82K input, предыдущий прогон) DeepSeek генерировал рабочий патч
+3. **Refactor cadabra: лучший из трёх** — единственный с compiles ✅ + api_preserved ✅. Но diff=6: модель поняла Kill Box (не ломать API), но не хватило capability на полный рефакторинг. Нужен интерактивный режим
+4. **$0.008 за прогон** — в 50× дешевле Gemini Pro, в 90× дешевле Opus. При этом на audit качество сопоставимо

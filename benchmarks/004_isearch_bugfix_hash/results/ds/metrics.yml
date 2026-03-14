@@ -1,0 +1,30 @@
+tag: ds
+baseline:
+  model: deepseek/deepseek-chat
+  total_tokens: 26758
+  input_tokens: 24301
+  output_tokens: 2457
+  wall_time_sec: 107.2
+  cost_usd: 0.00783622
+  objective:
+    patch_applied: true
+    tests_pass: false
+    regression_free: false
+    compiles: true
+    diff_size: 34
+    test_total: 0
+    test_failed: 0
+abra:
+  model: deepseek/deepseek-chat
+  total_tokens: 34893
+  input_tokens: 32274
+  output_tokens: 2619
+  wall_time_sec: 114.7
+  cost_usd: 0.008136828
+  objective:
+    patch_applied: false
+    tests_pass: false
+    regression_free: false
+    compiles: false
+    diff_size: -1
+    patch_error: Не удалось извлечь патч из ответа модели

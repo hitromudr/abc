@@ -1,0 +1,213 @@
+tag: ds
+baseline:
+  model: deepseek/deepseek-chat
+  total_tokens: 27419
+  input_tokens: 24388
+  output_tokens: 3031
+  wall_time_sec: 135.5
+  cost_usd: 0.00810166
+abra:
+  model: deepseek/deepseek-chat
+  total_tokens: 35232
+  input_tokens: 32322
+  output_tokens: 2910
+  wall_time_sec: 132.7
+  cost_usd: 0.010078824
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: b
+  reason: Отчёт B, несмотря на меньшее количество находок и иногда менее конкретные
+    рекомендации, обнаружил критическую уязвимость (неаутентифицированный доступ к
+    Qdrant), которая отсутствовала в Отчёте A. Отчёт B также охватывает более высокоуровневые
+    вопросы архитектуры и надёжности (резервное копирование, миграция моделей), что
+    имеет решающее значение для production-готовности. Отчёт A показал себя как очень
+    качественный детальный код-ревью, но пропустил фундаментальную проблему безопасности.
+  report_a:
+    findings:
+    - id: A1
+      title: Несогласованность конфигурации путей
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A2
+      title: Отсутствие стратегии обработки ошибок в фоновых задачах
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A3
+      title: Прямая зависимость от глобальных переменных
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A4
+      title: Отсутствие валидации путей в API
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A5
+      title: Уязвимость в парсинге Markdown
+      status: 'false'
+      actionability: no-fix
+      severity: low
+    - id: A6
+      title: Неоптимальное использование памяти при индексации
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A7
+      title: Отсутствие кэширования эмбеддингов
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A8
+      title: Потенциальные deadlocks в управлении процессами
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A9
+      title: Ненадёжное определение работающего API
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A10
+      title: Отсутствие транзакционности в операциях с Qdrant
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A11
+      title: Хрупкий механизм отслеживания задач
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: A12
+      title: Дублирование логики chunking
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A13
+      title: Смешение ответственности в main.py
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A14
+      title: Жёсткая привязка к конкретной модели эмбеддингов
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A15
+      title: Отсутствие мониторинга и метрик
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A16
+      title: Потенциальные проблемы с версиями зависимостей
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: A17
+      title: Отсутствие конфигурации для production
+      status: plausible
+      actionability: actionable
+      severity: medium
+    - id: A18
+      title: Обработка бинарных и больших файлов
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A19
+      title: Проблемы с кодировками
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: A20
+      title: Рекурсивные симлинки
+      status: verified
+      actionability: actionable
+      severity: medium
+    total: 20
+    verified: 19
+    plausible: 1
+    'false': 1
+    unique_findings: 20
+  report_b:
+    findings:
+    - id: B1
+      title: Отсутствие SLA и метрик релевантности/латентности поиска
+      status: verified
+      actionability: vague
+      severity: low
+    - id: B2
+      title: Недостаточная валидация входных данных API
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B3
+      title: Отсутствие лимитов памяти/батчей и мониторинга ресурсов
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B4
+      title: Отсутствие управления жизненным циклом фоновых задач
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B5
+      title: Отсутствие стратегии резервного копирования и восстановления Qdrant
+      status: verified
+      actionability: vague
+      severity: high
+    - id: B6
+      title: Qdrant без аутентификации
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B7
+      title: Отсутствие проверки целостности векторов
+      status: verified
+      actionability: vague
+      severity: medium
+    - id: B8
+      title: Отсутствие retry и graceful degradation для Qdrant
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B9
+      title: Отсутствие метрик, алертов и глубоких health checks. Отсутствие видимых
+        тестов.
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B10
+      title: Отсутствие механизма миграции/обновления модели эмбеддингов
+      status: verified
+      actionability: actionable
+      severity: medium
+    - id: B11
+      title: Добавить health check для Qdrant в `/system/health`
+      status: verified
+      actionability: actionable
+      severity: low
+    - id: B12
+      title: Валидация входных параметров (project_name, пути) для предотвращения
+        traversal
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B13
+      title: Добавить timeout и retry для операций Qdrant
+      status: verified
+      actionability: actionable
+      severity: high
+    - id: B14
+      title: Логировать ошибки embedding с stack trace
+      status: plausible
+      actionability: actionable
+      severity: low
+    total: 14
+    verified: 13
+    plausible: 1
+    'false': 0
+    unique_findings: 14
+  _mapping:
+    a: baseline
+    b: abra

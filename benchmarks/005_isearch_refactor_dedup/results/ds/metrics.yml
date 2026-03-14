@@ -1,0 +1,44 @@
+tag: ds
+baseline:
+  model: deepseek/deepseek-chat
+  total_tokens: 28700
+  input_tokens: 24604
+  output_tokens: 4096
+  wall_time_sec: 174.5
+  cost_usd: 0.00860944
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: false
+    diff_size: 117
+    api_preserved: false
+    cyclomatic_delta: -6.5
+abra:
+  model: deepseek/deepseek-chat
+  total_tokens: 34664
+  input_tokens: 32514
+  output_tokens: 2150
+  wall_time_sec: 95.1
+  cost_usd: 0.008007048
+  objective:
+    patch_applied: false
+    tests_pass: false
+    compiles: false
+    diff_size: -1
+    api_preserved: null
+    cyclomatic_delta: null
+    patch_error: Не удалось извлечь патч из ответа модели
+cadabra:
+  model: deepseek/deepseek-chat
+  total_tokens: 28640
+  input_tokens: 27646
+  output_tokens: 994
+  wall_time_sec: 46.1
+  cost_usd: 0.00815836
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: true
+    diff_size: 6
+    api_preserved: true
+    cyclomatic_delta: 0.0
