@@ -1,0 +1,22 @@
+name: isearch_refactor_dedup
+abra_version: 3.2-slim
+task_class: refactor
+target_repo: isearch
+target_repo_path: ~/work/isearch
+
+task_config:
+  test_cmd: "python -m pytest tests/unit/test_refactor_dedup.py tests/unit/test_graph_builder.py tests/unit/test_graph_analyzer.py -v"
+  build_cmd: "python -m py_compile src/services.py && python -m py_compile src/graph_builder.py && python -m py_compile src/index.py"
+  full_test_cmd: "python -m pytest tests/unit/ -v"
+  target_files:
+    - src/services.py
+    - src/graph_builder.py
+    - src/index.py
+
+ground_truth:
+  description: "3 реализации gitignore → 1, 2 набора расширений → 1, новый модуль file_utils.py"
+  metrics:
+    gitignore_implementations_before: 3
+    gitignore_implementations_after: 1
+    file_type_definitions_before: 2
+    file_type_definitions_after: 1

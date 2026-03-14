@@ -1,0 +1,43 @@
+tag: opus_slim
+baseline:
+  model: claude-code/opus
+  total_tokens: 3137
+  input_tokens: 2
+  output_tokens: 3135
+  wall_time_sec: 48.2
+  cost_usd: 0.71095375
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: true
+    diff_size: 100
+    api_preserved: false
+    cyclomatic_delta: 1.13
+abra:
+  model: claude-code/opus
+  total_tokens: 14107
+  input_tokens: 9667
+  output_tokens: 4440
+  wall_time_sec: 73.2
+  cost_usd: 0.74774875
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: true
+    diff_size: 90
+    api_preserved: false
+    cyclomatic_delta: 1.13
+cadabra:
+  model: claude-code/opus
+  total_tokens: 3131
+  input_tokens: 2
+  output_tokens: 3129
+  wall_time_sec: 49.1
+  cost_usd: 0.73834125
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: true
+    diff_size: 90
+    api_preserved: false
+    cyclomatic_delta: 1.13

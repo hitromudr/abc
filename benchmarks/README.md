@@ -108,6 +108,7 @@ Bug fix и refactor — **якорные классы**: оценка полно
 | **002** | `isearch` | code_audit | Gemini 3.1 Pro (interactive) | *pending* | — |
 | **003** | `isearch` | code_audit | 7 моделей × 2 KB (API) | **abra 6 / baseline 7 / tie 1** | [Таблица](003_isearch_audit_slim/results/COMPARISON.md) |
 | **004** | `isearch` | bug_fix | Opus + Gemini Flash | **abra 0 / baseline 2** | [Таблица](004_isearch_bugfix_hash/results/COMPARISON.md) |
+| **005** | `isearch` | refactor | Opus + Gemini Flash (×3 фазы) | **все 0 (one-shot)** | [Таблица](005_isearch_refactor_dedup/results/COMPARISON.md) |
 
 ### Bench 003: Code Audit (14 прогонов)
 
@@ -130,14 +131,25 @@ Bug fix и refactor — **якорные классы**: оценка полно
 | Gemini abra провалился | Thinking model потратил токены на рассуждения, не сгенерировал патч |
 | Abra вреден для bug fix | Clear-домен — конкретная задача, бинарный критерий. Фреймворк = overhead |
 
+### Bench 005: Refactor (6 прогонов, cadabra)
+
+Opus + Gemini Flash × 3 фазы (baseline / abra / cadabra). Консолидация 3× дублированной gitignore логики.
+
+| Вывод | Детали |
+|-------|--------|
+| **One-shot refactor невозможен** | Все 6 прогонов: patch applied ✅, tests ✗. Модели создают правильную архитектуру, но ломают import paths |
+| Cadabra в API = abra + 1 вызов | Без файловой системы и тестов retry loop не работает |
+| Gemini abra снижает CC | CC Δ-7.7 (лучшая архитектура), но compiles=False |
+| Рефакторинг = интерактивный агент | Нужен цикл: patch → test → fix → retry |
+
 ### Кросс-задачные выводы
 
-| Класс задачи | Эффект abra | Причина |
-|-------------|-------------|---------|
-| Code Audit (Cynefin: Complex) | ≈ паритет | Модели уже умеют в структурный аудит |
-| Bug Fix (Cynefin: Clear) | вреден | Задача конкретная, фреймворк мешает |
-| *Greenfield (Cynefin: Complex)* | *гипотеза: поможет* | *Approval Gate + Октагон для trade-off* |
-| *Refactor (Cynefin: Complicated)* | *гипотеза: поможет* | *EXECUTION_STATE для изоляции* |
+| Класс задачи | Cynefin | Эффект abra | Причина |
+|-------------|---------|-------------|---------|
+| Code Audit | Complex | ≈ паритет | Модели уже умеют в структурный аудит |
+| Bug Fix | Clear | вреден | Задача конкретная, фреймворк мешает |
+| Refactor | Complicated | **требует агента** | One-shot API не работает; нужен retry loop |
+| *Greenfield* | *Complex* | *гипотеза: поможет* | *Approval Gate + Октагон для trade-off* |
 
 ---
 *«Разница, которая не создаёт разницы в физическом мире, не имеет значения» (Фильтр 5: Джеймс).*

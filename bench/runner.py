@@ -234,6 +234,50 @@ def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_co
     return result
 
 
+def phase_cadabra(bench_dir: str, model: str, project_path: str, meta: dict,
+                  max_context: int = 0, tag: str | None = None):
+    """Фаза cadabra: abra output → cadabra execution → patch."""
+    task = get_task_class(meta)
+
+    # Читаем abra output
+    abra_path = tagged_path(bench_dir, "abra.md", tag)
+    if not os.path.exists(abra_path):
+        sys.exit(f"[ERROR] {abra_path} не найден. Сначала запустите abra фазу.")
+    with open(abra_path, "r", encoding="utf-8") as f:
+        abra_output = f.read()
+
+    # Читаем cadabra rules
+    cadabra_rules_path = os.path.join(REPO_ROOT, "cadabra", "core_rules.md")
+    with open(cadabra_rules_path, "r", encoding="utf-8") as f:
+        cadabra_rules = f.read()
+
+    print(f"[1/4] Собираю контекст проекта: {project_path}")
+    project_ctx = build_project_context(project_path, max_chars=max_context)
+
+    system_prompt, user_prompt = task.build_cadabra_prompt(
+        abra_output, project_ctx, cadabra_rules, meta
+    )
+
+    print(f"[2/4] Запускаю cadabra: {model}")
+    result = run_audit(model, system_prompt, user_prompt)
+
+    response_text = result["response"] or ""
+    out_path = tagged_path(bench_dir, "cadabra.md", tag)
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write(response_text)
+    result["response"] = response_text
+    print(f"[3/4] cadabra.md сохранён ({result['total_tokens']} tokens, {result['wall_time_sec']}s, ${result['cost_usd'] or '?'})")
+
+    # Объективные метрики
+    obj = task.evaluate_objective(response_text, meta, project_path)
+    if obj:
+        result["objective_metrics"] = obj
+        print(f"[4/4] [obj] {obj}")
+
+    save_run_metrics(bench_dir, tag, "cadabra", model, result)
+    return result
+
+
 def phase_verdict(bench_dir: str, verdict_model: str, project_path: str, max_context: int = 0, tag: str | None = None, n_judges: int = 1, style_blind: bool = False):
     """Фаза verdict: ослеплённое сравнение baseline vs abra."""
     baseline_path = tagged_path(bench_dir, "baseline.md", tag)
@@ -432,6 +476,7 @@ def main():
     parser.add_argument("bench_id", help="ID бенчмарка (e.g. 003)")
     parser.add_argument("--model", help="LiteLLM model ID (e.g. gemini/gemini-3.1-pro-preview)")
     parser.add_argument("--abra", action="store_true", help="Запустить abra фазу (вместо baseline)")
+    parser.add_argument("--cadabra", action="store_true", help="Запустить cadabra фазу (требует abra.md)")
     parser.add_argument("--verdict", action="store_true", help="Запустить verdict фазу")
     parser.add_argument("--verdict-model", help="Модель для verdict (default: из meta.yml)")
     parser.add_argument("--project", help="Путь к проекту (override meta.yml)")
@@ -460,6 +505,9 @@ def main():
         model = resolve_model(args.verdict_model or args.model, meta, "verdict")
         phase_verdict(bench_dir, model, project_path, max_context=args.max_context,
                       tag=args.tag, n_judges=args.n_judges, style_blind=args.style_blind)
+    elif args.cadabra:
+        model = resolve_model(args.model, meta, "cadabra")
+        phase_cadabra(bench_dir, model, project_path, meta, max_context=args.max_context, tag=args.tag)
     elif args.abra:
         model = resolve_model(args.model, meta, "abra")
         phase_abra(bench_dir, model, project_path, meta, max_context=args.max_context, tag=args.tag, full_kb=args.full_kb)

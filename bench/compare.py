@@ -142,7 +142,7 @@ def _generate_objective_table(results: list[dict], meta: dict) -> str:
         kb = "full" if "_full" in tag else "slim"
         model_name = tag.replace("_full", "").replace("_slim", "")
 
-        for phase in ["baseline", "abra"]:
+        for phase in ["baseline", "abra", "cadabra"]:
             phase_data = r.get(phase, {})
             obj = phase_data.get("objective", {})
             if not obj:
@@ -158,8 +158,13 @@ def _generate_objective_table(results: list[dict], meta: dict) -> str:
 
     # Ресурсы
     lines.append("\n## Ресурсы\n")
-    lines.append("| Модель | KB | B tokens | A tokens | Overhead | B cost | A cost |")
-    lines.append("|--------|----|---------:|---------:|---------:|-------:|-------:|")
+    has_cadabra = any(r.get("cadabra") for r in results if "_error" not in r)
+    if has_cadabra:
+        lines.append("| Модель | KB | B tokens | A tokens | C tokens | B cost | A cost | C cost |")
+        lines.append("|--------|----|---------:|---------:|---------:|-------:|-------:|-------:|")
+    else:
+        lines.append("| Модель | KB | B tokens | A tokens | Overhead | B cost | A cost |")
+        lines.append("|--------|----|---------:|---------:|---------:|-------:|-------:|")
 
     for r in results:
         tag = r.get("tag", "?")
@@ -168,16 +173,22 @@ def _generate_objective_table(results: list[dict], meta: dict) -> str:
 
         bl = r.get("baseline", {})
         ab = r.get("abra", {})
+        cd = r.get("cadabra", {})
         kb = "full" if "_full" in tag else "slim"
         model_name = tag.replace("_full", "").replace("_slim", "")
 
         bl_tok = bl.get("total_tokens", 0) or 0
         ab_tok = ab.get("total_tokens", 0) or 0
-        overhead = f"+{round((ab_tok - bl_tok) / bl_tok * 100)}%" if bl_tok > 0 else "—"
         bl_cost = f"${bl.get('cost_usd', 0):.3f}" if bl.get("cost_usd") else "—"
         ab_cost = f"${ab.get('cost_usd', 0):.3f}" if ab.get("cost_usd") else "—"
 
-        lines.append(f"| {model_name} | {kb} | {bl_tok:,} | {ab_tok:,} | {overhead} | {bl_cost} | {ab_cost} |")
+        if has_cadabra:
+            cd_tok = cd.get("total_tokens", 0) or 0
+            cd_cost = f"${cd.get('cost_usd', 0):.3f}" if cd.get("cost_usd") else "—"
+            lines.append(f"| {model_name} | {kb} | {bl_tok:,} | {ab_tok:,} | {cd_tok:,} | {bl_cost} | {ab_cost} | {cd_cost} |")
+        else:
+            overhead = f"+{round((ab_tok - bl_tok) / bl_tok * 100)}%" if bl_tok > 0 else "—"
+            lines.append(f"| {model_name} | {kb} | {bl_tok:,} | {ab_tok:,} | {overhead} | {bl_cost} | {ab_cost} |")
 
     # Сводка
     wins = {"abra": 0, "baseline": 0, "tie": 0}
@@ -219,34 +230,31 @@ def _generate_objective_table(results: list[dict], meta: dict) -> str:
         kb = "full" if "_full" in tag else "slim"
         model_name = tag.replace("_full", "").replace("_slim", "")
 
-        bl_obj = r.get("baseline", {}).get("objective", {})
-        ab_obj = r.get("abra", {}).get("objective", {})
-        bl_pass = bl_obj.get("tests_pass") or bl_obj.get("fix_tests_pass", False)
-        ab_pass = ab_obj.get("tests_pass") or ab_obj.get("fix_tests_pass", False)
-        bl_diff = bl_obj.get("diff_size", -1)
-        ab_diff = ab_obj.get("diff_size", -1)
-        bl_cost = r.get("baseline", {}).get("cost_usd")
-        ab_cost = r.get("abra", {}).get("cost_usd")
+        phases = {}
+        for phase in ["baseline", "abra", "cadabra"]:
+            obj = r.get(phase, {}).get("objective", {})
+            if obj:
+                phases[phase] = {
+                    "pass": obj.get("tests_pass") or obj.get("fix_tests_pass", False),
+                    "diff": obj.get("diff_size", -1),
+                    "cost": r.get(phase, {}).get("cost_usd"),
+                    "compiles": obj.get("compiles", False),
+                    "cc_delta": obj.get("cyclomatic_delta"),
+                }
 
-        if bl_pass and ab_pass:
-            cost_ratio = f" (cost: ${bl_cost:.3f} vs ${ab_cost:.3f})" if bl_cost and ab_cost else ""
-            notes.append(
-                f"- **{model_name}** [{kb}]: оба варианта прошли тесты. "
-                f"Baseline diff {bl_diff} строк, abra diff {ab_diff} строк{cost_ratio}."
-            )
-        elif bl_pass and not ab_pass:
-            err = ab_obj.get("patch_error", "patch/tests fail")
-            notes.append(
-                f"- **{model_name}** [{kb}]: baseline ✅, abra ✗ ({err[:80]}). "
-                f"abra KB помешала генерации патча."
-            )
-        elif ab_pass and not bl_pass:
-            notes.append(
-                f"- **{model_name}** [{kb}]: baseline ✗, abra ✅. "
-                f"abra KB помогла найти правильный фикс."
-            )
-        else:
-            notes.append(f"- **{model_name}** [{kb}]: оба варианта не прошли тесты.")
+        if not phases:
+            continue
+
+        parts = []
+        for phase, d in phases.items():
+            status = "✅" if d["pass"] else "✗"
+            extra = f", diff {d['diff']}" if d["diff"] >= 0 else ""
+            if d.get("cc_delta") is not None:
+                extra += f", CC Δ{d['cc_delta']:+.1f}"
+            cost = f", ${d['cost']:.3f}" if d["cost"] else ""
+            parts.append(f"{phase} {status}{extra}{cost}")
+
+        notes.append(f"- **{model_name}** [{kb}]: {' | '.join(parts)}")
 
     if not notes:
         notes.append("- Нет данных для анализа.")

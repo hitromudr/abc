@@ -1,0 +1,43 @@
+tag: gemini_flash_slim
+baseline:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 110939
+  input_tokens: 98614
+  output_tokens: 12325
+  wall_time_sec: 50.6
+  cost_usd: 0.0603967
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: true
+    diff_size: 186
+    api_preserved: false
+    cyclomatic_delta: 0.04
+abra:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 125966
+  input_tokens: 106126
+  output_tokens: 19840
+  wall_time_sec: 84.0
+  cost_usd: 0.0814378
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: false
+    diff_size: 272
+    api_preserved: false
+    cyclomatic_delta: -7.65
+cadabra:
+  model: gemini/gemini-2.5-flash
+  total_tokens: 139178
+  input_tokens: 111335
+  output_tokens: 27843
+  wall_time_sec: 102.1
+  cost_usd: 0.103008
+  objective:
+    patch_applied: true
+    tests_pass: false
+    compiles: false
+    diff_size: 297
+    api_preserved: false
+    cyclomatic_delta: -7.15
