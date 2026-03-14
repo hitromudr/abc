@@ -1,0 +1,10 @@
+mode: baseline
+tag: baseline-opus-3
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 256
+cost: N/A
+tokens: 9489
+wall_time: 225
+work_dir: /tmp/bench005-baseline-UpKfE1

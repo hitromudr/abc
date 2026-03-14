@@ -1,0 +1,10 @@
+mode: gsd
+tag: gsd-opus-3
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 255
+cost: N/A
+tokens: 6581
+wall_time: 648
+work_dir: /tmp/bench005-gsd-pa6Mad

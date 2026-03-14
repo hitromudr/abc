@@ -1,0 +1,10 @@
+mode: cadabra
+tag: cadabra-opus-3
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 256
+cost: N/A
+tokens: 5784
+wall_time: 123
+work_dir: /tmp/bench005-cadabra-xm1nyV

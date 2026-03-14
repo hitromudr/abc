@@ -1,0 +1,29 @@
+Ты — cadabra, исполнитель. Выполни EXECUTION_STATE пошагово. После каждого шага верифицируй результат.
+
+## EXECUTION_STATE
+
+### КОНТЕКСТ
+Цель: Консолидировать 3 дублированных реализации загрузки .gitignore и классификации типов файлов в единый модуль src/file_utils.py.
+
+### KILL BOX
+- MUST_NOT_DO: Изменять сигнатуры публичного API: IndexingService.__init__(), IndexingService.run_indexing(), build_graph(), load_documents()
+- MUST_NOT_DO: Модифицировать файлы тестов (tests/)
+- MUST_NOT_DO: Модифицировать конфигурационные файлы
+
+### DAG
+
+Шаг 1: Прочитай src/services.py, src/graph_builder.py, src/index.py. Найди все реализации загрузки .gitignore и определения расширений.
+
+Шаг 2: Создай src/file_utils.py с CODE_EXTENSIONS, DOCS_EXTENSIONS, ALLOWED_EXTENSIONS, FILE_EXTENSIONS (alias), load_gitignore_spec(root_path).
+
+Шаг 3: Рефакторь src/index.py — импортируй ALLOWED_EXTENSIONS и load_gitignore_spec из file_utils, УДАЛИ старые определения и import pathspec.
+
+Шаг 4: Рефакторь src/services.py — импортируй FILE_EXTENSIONS и load_gitignore_spec из file_utils. УДАЛИ self.code_extensions, self.docs_extensions, self.allowed_extensions, _load_gitignore_spec(). В файле НЕ ДОЛЖНО быть слов code_extensions/docs_extensions/allowed_extensions.
+
+Шаг 5: Рефакторь src/graph_builder.py — импортируй load_gitignore_spec из file_utils, УДАЛИ inline gitignore-блок и import pathspec.
+
+Шаг 6: Запусти pytest tests/unit/test_refactor_dedup.py tests/unit/test_graph_builder.py tests/unit/test_graph_analyzer.py -v. Если тесты падают — исправь.
+
+### VERIFY
+После каждого шага 2-5: python -m py_compile src/<файл>.py
+После шага 6: все 19 тестов зелёные.

@@ -1,0 +1,10 @@
+mode: baseline
+tag: baseline-opus-2
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 229
+cost: N/A
+tokens: 7649
+wall_time: 214
+work_dir: /tmp/bench005-baseline-knmgbV

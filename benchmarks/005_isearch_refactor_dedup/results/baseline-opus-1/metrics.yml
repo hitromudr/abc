@@ -1,0 +1,10 @@
+mode: baseline
+tag: baseline-opus-1
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 244
+cost: N/A
+tokens: 9007
+wall_time: 202
+work_dir: /tmp/bench005-baseline-EgSccW

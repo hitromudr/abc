@@ -253,3 +253,74 @@ Python-скрипт (~300 LOC), который:
 2. **Bug fix: оба провал** — baseline извлёк патч, но тесты ❌. Причина: обрезка контекста до 100K убрала критичные файлы. С полным контекстом (82K input, предыдущий прогон) DeepSeek генерировал рабочий патч
 3. **Refactor cadabra: лучший из трёх** — единственный с compiles ✅ + api_preserved ✅. Но diff=6: модель поняла Kill Box (не ломать API), но не хватило capability на полный рефакторинг. Нужен интерактивный режим
 4. **$0.008 за прогон** — в 50× дешевле Gemini Pro, в 90× дешевле Opus. При этом на audit качество сопоставимо
+
+## 10. GSD vs Cadabra vs Baseline: Claude Code bench (bench 005)
+
+Честное A/B/C-сравнение трёх подходов на одной задаче, одной модели, одном runner'е.
+
+### Что сравниваем
+
+- **Baseline** — vanilla Claude Code. Задача текстом, модель сама решает. Opus + Haiku (Claude Code internal)
+- **Cadabra** — Claude Code + EXECUTION_STATE (DAG из 6 шагов, Kill Box, verify). Только Opus
+- **GSD** — фреймворк [get-shit-done](https://github.com/gsd-build/get-shit-done) v1.22.4. `/gsd:quick --full`. Opus (planner) + Sonnet (checker, executor, verifier)
+
+Все 3 запускаются через `claude -p --permission-mode bypassPermissions` на изолированной копии isearch в /tmp/.
+
+### Результаты (3 прогона)
+
+| Run | | Baseline | Cadabra | GSD |
+|-----|---------|:--------:|:-------:|:---:|
+| 1 | tests_pass | ✅ | ✅ | ✅ |
+| | cost | $0.74 | $0.68 | $2.45 |
+| | time | 202s | 129s | 656s |
+| | diff_size | 244 | 239 | 258 |
+| 2 | tests_pass | ✅ | ✅ | ✅ |
+| | cost | $0.82 | $0.68 | $2.29 |
+| | time | 214s | 132s | 608s |
+| | diff_size | 229 | 250 | 261 |
+| 3 | tests_pass | ✅ | ✅ | ✅ |
+| | cost | $0.80 | $0.65 | $2.40 |
+| | time | 225s | 123s | 648s |
+| | diff_size | 256 | 256 | 255 |
+
+### Средние
+
+| Метрика | Baseline | Cadabra | GSD |
+|---------|:--------:|:-------:|:---:|
+| **pass rate** | **3/3** | **3/3** | **3/3** |
+| **cost** | **$0.79** | **$0.67** | **$2.38** |
+| **time** | **214s** | **128s** | **637s** |
+| diff_size | 243 | 248 | 258 |
+| Opus cost | $0.68 | $0.67 | $1.07 |
+| Sonnet cost | — | — | $1.31 |
+| Haiku cost | $0.11 | — | — |
+| turns | 22 | 21 | 15 |
+
+### Разбивка по моделям
+
+**GSD** тратит основную часть бюджета на Sonnet subagent'ы:
+- Planner (Opus): ~$1.07 — создание PLAN.md
+- Plan-checker + Executor + Verifier (Sonnet): ~$1.31 — 2.6M input tokens (cache read промптов GSD)
+
+**Cadabra** использует только Opus — DAG заменяет planner, verify встроен в промпт.
+
+**Baseline** подключает Haiku для внутренних задач Claude Code (классификация tool calls).
+
+### Выводы
+
+1. **Все три решают задачу.** На Complicated-задаче с Opus все подходы 100% pass rate. Сильная модель справляется без фреймворка
+2. **GSD — 3.5× дороже Cadabra** ($2.38 vs $0.67). Overhead: planner/checker/verifier subagent'ы на Sonnet. Для задачи этого масштаба overhead не окупается
+3. **Cadabra — 15% дешевле Baseline** ($0.67 vs $0.79). DAG экономит output tokens: модель не тратит время на планирование
+4. **Cadabra — 40% быстрее Baseline** (128s vs 214s). Структурированная задача → меньше iterations
+5. **GSD — 5× медленнее Cadabra** (637s vs 128s). Sequential: plan → check → execute → verify
+6. **diff_size одинаковый** (~250 LOC у всех). Качество рефакторинга сопоставимо
+
+### Где GSD может выиграть
+
+Этот бенчмарк — **одна атомарная задача**. GSD спроектирован для **мульти-фазных проектов** с:
+- Параллельными wave'ами (несколько executor'ов одновременно)
+- Goal-backward verification (ловит stubs, orphaned code)
+- Session continuity (STATE.md, pause/resume)
+- Requirement traceability
+
+Для полноценного сравнения нужен бенчмарк с 3+ фазами и кросс-зависимостями
