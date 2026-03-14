@@ -1,0 +1,10 @@
+mode: gsd
+tag: gsd-sonnet-1
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 115
+cost: N/A
+tokens: 5372
+wall_time: 532
+work_dir: /tmp/bench005-gsd-GzFOER

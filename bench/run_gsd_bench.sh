@@ -2,17 +2,20 @@
 # Бенчмарк GSD vs Cadabra vs Baseline на задаче bench 005 (refactor dedup)
 #
 # Использование:
-#   ./bench/run_gsd_bench.sh [gsd|cadabra|baseline] [tag]
+#   ./bench/run_gsd_bench.sh [gsd|cadabra|baseline] [tag] [model]
 #
 # Примеры:
 #   ./bench/run_gsd_bench.sh gsd gsd-opus-1
-#   ./bench/run_gsd_bench.sh cadabra cadabra-opus-1
-#   ./bench/run_gsd_bench.sh baseline baseline-opus-1
+#   ./bench/run_gsd_bench.sh cadabra cadabra-sonnet-1 sonnet
+#   ./bench/run_gsd_bench.sh baseline baseline-ds-1 deepseek/deepseek-chat
+#
+# Модели: opus (default), sonnet, haiku, или любая модель Claude Code
 
 set -euo pipefail
 
 MODE="${1:-gsd}"
 TAG="${2:-${MODE}-$(date +%s)}"
+MODEL="${3:-}"
 PROJECT_DIR="$HOME/work/isearch"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 RESULTS_DIR="$SCRIPT_DIR/../benchmarks/005_isearch_refactor_dedup/results/$TAG"
@@ -40,14 +43,22 @@ START_TIME=$(date +%s)
 # Убираем CLAUDECODE чтобы не блокировался вложенный запуск
 unset CLAUDECODE 2>/dev/null || true
 
+# Формируем флаг модели
+MODEL_FLAG=""
+if [ -n "$MODEL" ]; then
+    MODEL_FLAG="--model $MODEL"
+    echo "Model: $MODEL"
+fi
+
 cd "$WORK_DIR/isearch"
 
 if [ "$MODE" = "gsd" ]; then
     echo "Running GSD /gsd:quick --full ..."
     claude -p "/gsd:quick --full $TASK_DESC" \
       --permission-mode bypassPermissions \
-      --max-budget-usd 5 \
+      --max-budget-usd 10 \
       --output-format json \
+      $MODEL_FLAG \
       > "$WORK_DIR/claude_output.json" 2>&1
 
 elif [ "$MODE" = "cadabra" ]; then
@@ -55,16 +66,18 @@ elif [ "$MODE" = "cadabra" ]; then
     EXEC_STATE=$(cat "$SCRIPT_DIR/cadabra_exec_state.txt")
     claude -p "$EXEC_STATE" \
       --permission-mode bypassPermissions \
-      --max-budget-usd 5 \
+      --max-budget-usd 10 \
       --output-format json \
+      $MODEL_FLAG \
       > "$WORK_DIR/claude_output.json" 2>&1
 
 elif [ "$MODE" = "baseline" ]; then
     echo "Running baseline (vanilla prompt) ..."
     claude -p "$TASK_DESC" \
       --permission-mode bypassPermissions \
-      --max-budget-usd 5 \
+      --max-budget-usd 10 \
       --output-format json \
+      $MODEL_FLAG \
       > "$WORK_DIR/claude_output.json" 2>&1
 
 else

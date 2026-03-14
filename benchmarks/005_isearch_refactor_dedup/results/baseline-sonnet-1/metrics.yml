@@ -1,0 +1,10 @@
+mode: baseline
+tag: baseline-sonnet-1
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 246
+cost: N/A
+tokens: 21
+wall_time: 264
+work_dir: /tmp/bench005-baseline-csEkuv

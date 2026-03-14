@@ -1,0 +1,30 @@
+api_preserved: true
+compiles: true
+diff_size: 269
+model: gemini/gemini-2.5-pro
+step_log:
+- id: 1
+  retries: 1
+  status: ✅
+- id: 2
+  retries: 1
+  status: ✅
+- id: 3
+  retries: 1
+  status: ✅
+- id: 4
+  retries: 1
+  status: ✅
+- id: 5
+  retries: 1
+  status: ✅
+- id: 6
+  retries: 0
+  status: ✅
+steps_completed: 6
+steps_total: 6
+tag: gemini25pro-rt-1
+tests_pass: true
+total_cost: 0.193434
+total_tokens: 38134
+total_wall: 119.5

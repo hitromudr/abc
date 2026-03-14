@@ -1,0 +1,10 @@
+mode: cadabra
+tag: cadabra-sonnet-1
+tests_pass: true
+compiles: true
+api_preserved: true
+diff_size: 240
+cost: N/A
+tokens: 9309
+wall_time: 161
+work_dir: /tmp/bench005-cadabra-XUqemd
