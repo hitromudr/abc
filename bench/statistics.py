@@ -48,20 +48,7 @@ def mann_whitney_u(a: list[float], b: list[float]) -> float | None:
     combined.sort(key=lambda x: x[0])
 
     # Assign ranks (handle ties)
-    ranks = {}
-    i = 0
-    while i < len(combined):
-        j = i
-        while j < len(combined) and combined[j][0] == combined[i][0]:
-            j += 1
-        avg_rank = (i + 1 + j) / 2
-        for k in range(i, j):
-            ranks[id(combined[k])] = avg_rank  # won't work, need index-based
-        i = j
-
-    # Recompute with indices
     rank_sum_a = 0.0
-    idx = 0
     n = len(combined)
     i = 0
     while i < n:

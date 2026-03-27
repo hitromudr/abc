@@ -36,6 +36,16 @@ DeepSeek за $0.009 решает задачу, которую Opus baseline р�
 
 22 контролируемых A/B тестов по 3 классам задач. Ослеплённый verdict, верификация по коду и тестам.
 
+**Сводка по доменам:**
+
+| Домен | Класс | N | abra | baseline | Режим |
+|-------|-------|---|------|----------|-------|
+| Complex | Code Audit | 14 | 6 | 7 | one-shot API |
+| Clear | Bug Fix | 2 | 0 | 2 | one-shot API |
+| Complicated | Refactor | 3 | 3 (cadabra) | 0 | интерактивный* |
+
+\* интерактивный = агент с доступом к файловой системе и тестам (CLI mode).
+
 ### Bench 003 — Code Audit (security/architecture)
 
 [14 прогонов](benchmarks/003_isearch_audit_slim/results/COMPARISON.md): 7 моделей (Gemini 2.5–3.1, DeepSeek) × 2 режима KB (slim 33KB / full 75KB). Проект: isearch (~3K строк Python), 4 Ground Truth бага.
@@ -71,7 +81,7 @@ Opus: оба прошли, baseline компактнее и в 12× дешевл
 
 [6 прогонов](benchmarks/005_isearch_refactor_dedup/results/COMPARISON.md): Opus и Gemini Flash × 3 фазы (baseline / abra / cadabra). Задача: консолидировать 3 дублированных реализации `.gitignore` и file type classification в единый модуль. Первый тест cadabra (abra→EXECUTION_STATE→cadabra→patch).
 
-**Итого: ни одна модель не решила задачу в one-shot API**
+**Итого (one-shot API): ни одна модель не решила задачу**
 
 | Модель | Baseline | Abra | Cadabra |
 |--------|----------|------|---------|
@@ -82,7 +92,7 @@ Opus: оба прошли, baseline компактнее и в 12× дешевл
 
 Cadabra в API-режиме = abra + один дополнительный вызов. Без доступа к файловой системе и тестам cadabra не может выполнить свой retry loop (правило RETRY BUDGET: 3 попытки починить после красного теста).
 
-### Bench 005 — Cadabra vs GSD (интерактивный режим)
+### Bench 005 — Cadabra vs GSD (интерактивный режим, с доступом к FS и тестам)
 
 #### Сильная модель (Opus)
 

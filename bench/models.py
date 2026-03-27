@@ -97,7 +97,12 @@ def _run_claude_code(model: str, system_prompt: str, user_prompt: str, timeout: 
         raise RuntimeError(f"claude CLI failed (rc={result.returncode}): {result.stderr[:500]}")
 
     # Парсим JSON output
-    data = json.loads(result.stdout)
+    try:
+        data = json.loads(result.stdout)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(
+            f"Invalid JSON from claude CLI: {e}\nstdout: {result.stdout[:500]}"
+        )
 
     # Извлекаем текст ответа из JSON
     response_text = data.get("result", "")

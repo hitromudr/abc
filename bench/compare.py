@@ -9,6 +9,7 @@ from .runner import (
     find_bench_dir, load_meta, get_project_path,
     phase_baseline, phase_abra, phase_verdict,
 )
+from .statistics import bootstrap_ci, mann_whitney_u
 
 VERDICT_MODEL = "gemini/gemini-2.5-flash"
 
@@ -220,6 +221,35 @@ def _generate_objective_table(results: list[dict], meta: dict) -> str:
 
     lines.append(f"\n## Итого: abra {wins['abra']} / baseline {wins['baseline']} / tie {wins['tie']}")
 
+    # --- Статистика (diff size для объективных классов) ---
+    abra_diffs = []
+    base_diffs = []
+    for r in results:
+        if "_error" in r:
+            continue
+        bl_obj = r.get("baseline", {}).get("objective", {})
+        ab_obj = r.get("abra", {}).get("objective", {})
+        bl_d = bl_obj.get("diff_size")
+        ab_d = ab_obj.get("diff_size")
+        if bl_d is not None and ab_d is not None:
+            base_diffs.append(float(bl_d))
+            abra_diffs.append(float(ab_d))
+
+    if len(abra_diffs) >= 2:
+        lines.append("\n## Статистика\n")
+        p = mann_whitney_u(abra_diffs, base_diffs)
+        ci_a = bootstrap_ci(abra_diffs)
+        ci_b = bootstrap_ci(base_diffs)
+        lines.append(f"| | Mean diff | 95% CI | N |")
+        lines.append(f"|---|----------:|-------:|--:|")
+        lines.append(f"| Baseline | {ci_b[0]} | [{ci_b[1]}, {ci_b[2]}] | {len(base_diffs)} |")
+        lines.append(f"| Abra | {ci_a[0]} | [{ci_a[1]}, {ci_a[2]}] | {len(abra_diffs)} |")
+        p_str = f"{p:.4f}" if p is not None else "n/a (N<2)"
+        lines.append(f"\nMann-Whitney U p-value: **{p_str}**")
+        if p is not None and p > 0.05:
+            lines.append(f"\n> Разница статистически незначима (p>{0.05}).")
+        lines.append("")
+
     # Выводы
     lines.append("\n## Выводы\n")
     notes = []
@@ -393,6 +423,36 @@ def _generate_audit_table(results: list[dict], verdict_model: str = VERDICT_MODE
             wins[w] += 1
 
     lines.append(f"\n## Итого: abra {wins['abra']} / baseline {wins['baseline']} / tie {wins['tie']}\n")
+
+    # --- Статистика ---
+    abra_scores = []
+    base_scores = []
+    for r in results:
+        if "_error" in r or not r.get("verdict"):
+            continue
+        rv = _resolve_verdict(r["verdict"])
+        bl = rv.get("baseline", {})
+        ab = rv.get("abra", {})
+        bl_ws = _ws(bl.get("findings", []))
+        ab_ws = _ws(ab.get("findings", []))
+        if bl_ws or ab_ws:
+            base_scores.append(bl_ws)
+            abra_scores.append(ab_ws)
+
+    if len(abra_scores) >= 2:
+        lines.append("## Статистика\n")
+        p = mann_whitney_u(abra_scores, base_scores)
+        ci_a = bootstrap_ci(abra_scores)
+        ci_b = bootstrap_ci(base_scores)
+        lines.append(f"| | Mean | 95% CI | N |")
+        lines.append(f"|---|-----:|-------:|--:|")
+        lines.append(f"| Baseline | {ci_b[0]} | [{ci_b[1]}, {ci_b[2]}] | {len(base_scores)} |")
+        lines.append(f"| Abra | {ci_a[0]} | [{ci_a[1]}, {ci_a[2]}] | {len(abra_scores)} |")
+        p_str = f"{p:.4f}" if p is not None else "n/a (N<2)"
+        lines.append(f"\nMann-Whitney U p-value: **{p_str}**")
+        if p is not None and p > 0.05:
+            lines.append(f"\n> Разница статистически незначима (p>{0.05}).")
+        lines.append("")
 
     return "\n".join(lines)
 

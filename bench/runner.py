@@ -485,7 +485,10 @@ def main():
     parser.add_argument("--tag", help="Тег прогона (для мульти-модельного сравнения). Результаты → results/<tag>/")
     parser.add_argument("--full-kb", action="store_true", help="Использовать полную базу знаний abra (16 файлов вместо 5)")
     parser.add_argument("--n-judges", type=int, default=1, help="Количество судей для verdict (default: 1)")
-    parser.add_argument("--style-blind", action="store_true", help="Нормализовать отчёты перед verdict (style-blind)")
+    parser.add_argument("--style-blind", action="store_true", default=True,
+                        help="Нормализовать отчёты перед verdict (style-blind, default: on)")
+    parser.add_argument("--no-style-blind", dest="style_blind", action="store_false",
+                        help="Отключить style-blind нормализацию")
 
     args = parser.parse_args()
 
