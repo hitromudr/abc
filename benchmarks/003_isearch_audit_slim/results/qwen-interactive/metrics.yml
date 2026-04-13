@@ -1,0 +1,15 @@
+tag: qwen-interactive
+baseline:
+  model: qwen-code/default
+  total_tokens: 335617
+  input_tokens: 334001
+  output_tokens: 1616
+  wall_time_sec: 60.9
+  cost_usd: null
+abra:
+  model: qwen-code/default
+  total_tokens: 15735
+  input_tokens: 15602
+  output_tokens: 133
+  wall_time_sec: 10.0
+  cost_usd: null

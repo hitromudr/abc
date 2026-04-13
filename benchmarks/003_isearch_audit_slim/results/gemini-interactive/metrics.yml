@@ -1,0 +1,15 @@
+tag: gemini-interactive
+baseline:
+  model: gemini-code/default
+  total_tokens: 414902
+  input_tokens: 411687
+  output_tokens: 3215
+  wall_time_sec: 300.3
+  cost_usd: null
+abra:
+  model: gemini-code/default
+  total_tokens: 451108
+  input_tokens: 446988
+  output_tokens: 4120
+  wall_time_sec: 148.4
+  cost_usd: null

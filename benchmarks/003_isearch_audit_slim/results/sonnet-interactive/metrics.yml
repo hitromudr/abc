@@ -1,0 +1,15 @@
+tag: sonnet-interactive
+baseline:
+  model: claude-code/sonnet
+  total_tokens: 375683
+  input_tokens: 343294
+  output_tokens: 32389
+  wall_time_sec: 718.8
+  cost_usd: 1.20049665
+abra:
+  model: claude-code/sonnet
+  total_tokens: 1810564
+  input_tokens: 1762241
+  output_tokens: 48323
+  wall_time_sec: 857.5
+  cost_usd: 2.0074794000000002

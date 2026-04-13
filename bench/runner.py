@@ -7,7 +7,7 @@ import os
 import sys
 import yaml
 
-from .models import run_audit
+from .models import run_audit, run_audit_interactive, is_cli_model
 from .context import build_project_context
 from .verdict import run_verdict
 from .metrics import extract_json_from_text, update_meta_yml
@@ -165,7 +165,8 @@ def save_run_metrics(bench_dir: str, tag: str | None, phase: str, model: str, me
 # PHASES
 # ---------------------------------------------------------------------------
 
-def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict, max_context: int = 0, tag: str | None = None):
+def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict,
+                   max_context: int = 0, tag: str | None = None, max_turns: int = 10):
     """Фаза baseline: vanilla модель на BRIEF + код."""
     task = get_task_class(meta)
 
@@ -173,13 +174,18 @@ def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict, ma
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = f.read()
 
-    print(f"[1/3] Собираю контекст проекта: {project_path}")
-    project_ctx = build_project_context(project_path, max_chars=max_context)
-
-    system_prompt, user_prompt = task.build_baseline_prompt(brief, project_ctx, meta)
-
-    print(f"[2/3] Запускаю baseline: {model}")
-    result = run_audit(model, system_prompt, user_prompt)
+    if is_cli_model(model):
+        # CLI-агент: tools включены, читает файлы сам
+        system_prompt, _ = task.build_baseline_prompt(brief, "", meta)
+        print(f"[1/3] CLI interactive mode: {model} (max_turns={max_turns})")
+        print(f"[2/3] Запускаю baseline: {model}")
+        result = run_audit_interactive(model, system_prompt, brief, project_path, max_turns=max_turns)
+    else:
+        print(f"[1/3] Собираю контекст проекта: {project_path}")
+        project_ctx = build_project_context(project_path, max_chars=max_context)
+        system_prompt, user_prompt = task.build_baseline_prompt(brief, project_ctx, meta)
+        print(f"[2/3] Запускаю baseline: {model}")
+        result = run_audit(model, system_prompt, user_prompt)
 
     response_text = result["response"] or ""
     out_path = tagged_path(bench_dir, "baseline.md", tag)
@@ -198,7 +204,9 @@ def phase_baseline(bench_dir: str, model: str, project_path: str, meta: dict, ma
     return result
 
 
-def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_context: int = 0, tag: str | None = None, full_kb: bool = False):
+def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict,
+               max_context: int = 0, tag: str | None = None, full_kb: bool = False,
+               max_turns: int = 10):
     """Фаза abra: модель с abra knowledge base."""
     task = get_task_class(meta)
 
@@ -206,16 +214,21 @@ def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_co
     with open(brief_path, "r", encoding="utf-8") as f:
         brief = f.read()
 
-    print(f"[1/4] Собираю контекст проекта: {project_path}")
-    project_ctx = build_project_context(project_path, max_chars=max_context)
-
-    print("[2/4] Загружаю abra knowledge base")
+    print("[1/4] Загружаю abra knowledge base")
     abra_kb = load_abra_kb(full=full_kb)
 
-    system_prompt, user_prompt = task.build_abra_prompt(brief, project_ctx, abra_kb, meta)
-
-    print(f"[3/4] Запускаю abra: {model}")
-    result = run_audit(model, system_prompt, user_prompt)
+    if is_cli_model(model):
+        # CLI-агент: KB в system prompt, brief в stdin, читает файлы сам
+        system_prompt, _ = task.build_abra_prompt(brief, "", abra_kb, meta)
+        print(f"[2/4] CLI interactive mode: {model} (max_turns={max_turns})")
+        print(f"[3/4] Запускаю abra: {model}")
+        result = run_audit_interactive(model, system_prompt, brief, project_path, max_turns=max_turns)
+    else:
+        print(f"[2/4] Собираю контекст проекта: {project_path}")
+        project_ctx = build_project_context(project_path, max_chars=max_context)
+        system_prompt, user_prompt = task.build_abra_prompt(brief, project_ctx, abra_kb, meta)
+        print(f"[3/4] Запускаю abra: {model}")
+        result = run_audit(model, system_prompt, user_prompt)
 
     response_text = result["response"] or ""
     out_path = tagged_path(bench_dir, "abra.md", tag)
@@ -235,7 +248,7 @@ def phase_abra(bench_dir: str, model: str, project_path: str, meta: dict, max_co
 
 
 def phase_cadabra(bench_dir: str, model: str, project_path: str, meta: dict,
-                  max_context: int = 0, tag: str | None = None):
+                  max_context: int = 0, tag: str | None = None, max_turns: int = 10):
     """Фаза cadabra: abra output → cadabra execution → patch."""
     task = get_task_class(meta)
 
@@ -251,15 +264,20 @@ def phase_cadabra(bench_dir: str, model: str, project_path: str, meta: dict,
     with open(cadabra_rules_path, "r", encoding="utf-8") as f:
         cadabra_rules = f.read()
 
-    print(f"[1/4] Собираю контекст проекта: {project_path}")
-    project_ctx = build_project_context(project_path, max_chars=max_context)
-
-    system_prompt, user_prompt = task.build_cadabra_prompt(
-        abra_output, project_ctx, cadabra_rules, meta
-    )
-
-    print(f"[2/4] Запускаю cadabra: {model}")
-    result = run_audit(model, system_prompt, user_prompt)
+    if is_cli_model(model):
+        # CLI-агент: cadabra rules + abra output в system prompt, brief=abra_output
+        system_prompt, _ = task.build_cadabra_prompt(abra_output, "", cadabra_rules, meta)
+        print(f"[1/4] CLI interactive mode: {model} (max_turns={max_turns})")
+        print(f"[2/4] Запускаю cadabra: {model}")
+        result = run_audit_interactive(model, system_prompt, abra_output, project_path, max_turns=max_turns)
+    else:
+        print(f"[1/4] Собираю контекст проекта: {project_path}")
+        project_ctx = build_project_context(project_path, max_chars=max_context)
+        system_prompt, user_prompt = task.build_cadabra_prompt(
+            abra_output, project_ctx, cadabra_rules, meta
+        )
+        print(f"[2/4] Запускаю cadabra: {model}")
+        result = run_audit(model, system_prompt, user_prompt)
 
     response_text = result["response"] or ""
     out_path = tagged_path(bench_dir, "cadabra.md", tag)
@@ -489,6 +507,8 @@ def main():
                         help="Нормализовать отчёты перед verdict (style-blind, default: on)")
     parser.add_argument("--no-style-blind", dest="style_blind", action="store_false",
                         help="Отключить style-blind нормализацию")
+    parser.add_argument("--max-turns", type=int, default=10,
+                        help="Макс. turns для CLI-агентов (default: 10)")
 
     args = parser.parse_args()
 
@@ -510,13 +530,16 @@ def main():
                       tag=args.tag, n_judges=args.n_judges, style_blind=args.style_blind)
     elif args.cadabra:
         model = resolve_model(args.model, meta, "cadabra")
-        phase_cadabra(bench_dir, model, project_path, meta, max_context=args.max_context, tag=args.tag)
+        phase_cadabra(bench_dir, model, project_path, meta, max_context=args.max_context,
+                      tag=args.tag, max_turns=args.max_turns)
     elif args.abra:
         model = resolve_model(args.model, meta, "abra")
-        phase_abra(bench_dir, model, project_path, meta, max_context=args.max_context, tag=args.tag, full_kb=args.full_kb)
+        phase_abra(bench_dir, model, project_path, meta, max_context=args.max_context,
+                   tag=args.tag, full_kb=args.full_kb, max_turns=args.max_turns)
     else:
         model = resolve_model(args.model, meta, "baseline")
-        phase_baseline(bench_dir, model, project_path, meta, max_context=args.max_context, tag=args.tag)
+        phase_baseline(bench_dir, model, project_path, meta, max_context=args.max_context,
+                       tag=args.tag, max_turns=args.max_turns)
 
 
 if __name__ == "__main__":

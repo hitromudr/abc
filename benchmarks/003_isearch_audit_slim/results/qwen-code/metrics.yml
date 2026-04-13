@@ -1,0 +1,75 @@
+tag: qwen-code
+baseline:
+  model: qwen-code/default
+  total_tokens: 615637
+  input_tokens: 601620
+  output_tokens: 14017
+  wall_time_sec: 248.4
+  cost_usd: null
+abra:
+  model: qwen-code/default
+  total_tokens: 70608
+  input_tokens: 68199
+  output_tokens: 2409
+  wall_time_sec: 52.7
+  cost_usd: null
+verdict:
+  model: gemini/gemini-2.5-flash
+  winner: a
+  reason: Report A (baseline) значительно превосходит Report B (abra) по точности
+    и полноте. Report A не только выявил больше критических проблем (включая новую
+    уязвимость Path Traversal), но и верно оценил статус известных проблем. Report
+    B допустил критическую ошибку, посчитав два активных GT-бага (GT-1 и GT-2) 'исправленными',
+    что подрывает его надёжность.
+  report_a:
+    findings:
+    - id: C-01
+      title: Недетерминированные ID точек в Qdrant (abs(hash()))
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: C-02
+      title: Отсутствие префиксов E5 для multilingual-e5-large
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: C-03
+      title: Гонка данных при параллельной индексации
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: C-04
+      title: Уязвимость Path Traversal через символические ссылки
+      status: verified
+      actionability: actionable
+      severity: critical
+    total: 4
+    verified: 4
+    plausible: 0
+    'false': 0
+    unique_findings: 4
+  report_b:
+    findings:
+    - id: B1
+      title: Недетерминированные Qdrant ID (abs(hash()) и PYTHONHASHSEED)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B2
+      title: Гонка данных при параллельной индексации (отсутствие блокировок)
+      status: verified
+      actionability: actionable
+      severity: critical
+    - id: B3
+      title: Молчаливые отказы батчей Qdrant / Отсутствие телеметрии потерь
+      status: verified
+      actionability: actionable
+      severity: high
+    total: 3
+    verified: 3
+    plausible: 0
+    'false': 0
+    unique_findings: 3
+  _mapping:
+    a: baseline
+    b: abra
