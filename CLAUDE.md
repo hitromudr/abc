@@ -97,10 +97,12 @@ python -m bench.runner NNN --verdict --n-judges 3 --style-blind --tag TAG
 python -m bench.compare NNN [--full-kb] [--table-only]
 ```
 
+Дополнительные флаги runner: `--project PATH` (override проекта из meta.yml), `--max-context N` (лимит символов контекста, 0=без лимита), `--max-turns N` (макс. итераций CLI-агента, default 10), `--timeout N` (таймаут вызова модели в секундах, default 600).
+
 ### Модели
 
 LiteLLM формат: `gemini/gemini-2.5-flash`, `deepseek/deepseek-chat`, `openrouter/...`.
-Claude Code CLI: `claude-code/opus`, `claude-code/sonnet`.
+CLI-агенты (интерактивный режим с доступом к FS и тестам): `claude-code/opus`, `claude-code/sonnet`, `qwen-code/coder`, `gemini-code/gemini-2.5-pro`. Определяются по префиксу в `models.py:is_cli_model()`.
 
 ### Классы задач
 
@@ -112,14 +114,41 @@ Claude Code CLI: `claude-code/opus`, `claude-code/sonnet`.
 
 ### Архитектура bench/
 
-- `runner.py` — CLI entry point: baseline / abra / verdict фазы
-- `models.py` — бэкенд: LiteLLM API + Claude Code CLI subprocess
+- `runner.py` — CLI entry point: baseline / abra / cadabra / verdict фазы
+- `models.py` — бэкенд: LiteLLM API + CLI subprocess (claude-code/, qwen-code/, gemini-code/)
 - `task_class.py` → `registry.py` → `tasks/` — абстрактная база, реестр, реализации 6 классов
 - `executors.py` — песочница: apply patch → run tests (tmpdir isolation)
 - `judges.py` — multi-judge: cross-family exclusion, majority vote, Cohen's kappa
 - `verdict.py` + `metrics.py` — ослеплённый A/B арбитраж + извлечение JSON
 - `statistics.py` — bootstrap CI, Mann-Whitney U, composite score
 - `pareto.py` — Pareto frontier: quality × cost × speed
+- `cadabra_runtime.py` — парсер EXECUTION_STATE для API-уровня cadabra
+
+**Два режима оценки:**
+- **Objective** (bug_fix, refactor, debug): `ExecutionSandbox` применяет патч → запускает тесты → regression check. Автоматический вердикт без LLM-судьи.
+- **Subjective** (code_audit, code_review): LLM-судья в ослеплённом A/B-режиме, multi-judge с Cohen's kappa.
+
+Режим определяется наличием метода `evaluate_objective()` в TaskClass.
+
+### Создание нового бенчмарка
+
+```
+benchmarks/NNN_описание/
+├── meta.yml          ← task_class, project_path, ground_truth, verdict_model
+├── BRIEF.md          ← задание для модели
+└── results/          ← результаты прогонов (автогенерация)
+    ├── <tag>/        ← baseline.md, abra.md, verdict.md, metrics.yml
+    └── COMPARISON.md ← сводная таблица (bench.compare)
+```
+
+`meta.yml` обязателен. Поле `task_class` определяет pipeline оценки (default: `code_audit`).
+
+### Добавление нового task class
+
+1. Создать `bench/tasks/my_task.py` с классом, наследующим `TaskClass` (ABC из `task_class.py`)
+2. Реализовать `build_baseline_prompt()` и `build_abra_prompt()`
+3. Для объективной оценки — переопределить `evaluate_objective()`
+4. Зарегистрировать в `bench/registry.py` → `TASK_CLASSES`
 
 ## Cynefin-маппинг (эмпирически подтверждён)
 
